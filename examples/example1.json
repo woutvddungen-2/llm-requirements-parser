@@ -1,16 +1,16 @@
 {
   "door_rules": [
     {
-      "areas": ["serverruimten"],
+      "areas": ["serverruimte"],
       "reader_direction": "IN_ONLY",
       "lock_type": "MAGNETIC_LOCK",
       "door_sensor": null,
       "exit_button": null,
       "emergency_button": null,
-      "door_closer": false,
+      "door_closer": null,
       "anti_passback": null,
-      "reader_types": ["CARD"],
-      "description": "Serverruimten deuren met IN kaartlezer en magneetgrendel"
+      "reader_types": ["FACE_RECOGNITION"],
+      "description": "Serverruimte met IN-only gezichtscanner, magnetische grendel en geen sluitplaat"
     },
     {
       "areas": ["directiekantoren"],
@@ -19,10 +19,10 @@
       "door_sensor": null,
       "exit_button": null,
       "emergency_button": null,
-      "door_closer": false,
+      "door_closer": null,
       "anti_passback": null,
       "reader_types": ["CARD", "CODE"],
-      "description": "Directiekantoren deuren met IN kaartlezer en pincode, met sluitplaten"
+      "description": "Directiekantoren met IN-only kaartlezers en pincodes, elektrische sluitplaten"
     },
     {
       "areas": ["buitendeuren"],
@@ -34,7 +34,7 @@
       "door_closer": null,
       "anti_passback": null,
       "reader_types": ["CARD"],
-      "description": "Buitendeuren met in en uit kaartlezers en motorsloten"
+      "description": "Buitendeuren met IN/OUT kaartlezers en motorsloten"
     },
     {
       "areas": ["overige binnendeuren"],
@@ -43,10 +43,10 @@
       "door_sensor": null,
       "exit_button": null,
       "emergency_button": null,
-      "door_closer": true,
+      "door_closer": null,
       "anti_passback": null,
       "reader_types": ["CARD"],
-      "description": "Overige binnendeuren met IN kaartlezers en sluitplaten"
+      "description": "Overige binnendeuren met IN-only kaartlezers en elektrische sluitplaten"
     }
   ],
   "controller_rules": []
