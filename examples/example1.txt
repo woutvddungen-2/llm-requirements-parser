@@ -1,6 +1,0 @@
-Ik wil dat alle deuren van serverruimten en directiekantoren beveiligd worden met een IN kaartlezer
-de directiekantoren moeten ook geopend kunnen worden met pincodes
-Ik wil dat alle buitendeuren in en uit kaartlezers hebben, alle andere deuren krijgen alleen IN kaartlezers.
-de serverruimte moet een gezichtscanner krijgen, ipv een kaartlezer
-
-ik wil alle buitendeuren motorsloten geven, en alle binnendeuren krijgen sluitplaten, behalve de serverruimte, deze krijgt een magneetgrendel
