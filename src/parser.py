@@ -1,14 +1,19 @@
-import json
-from typing import Any
-
 from openai import RateLimitError
-from pydantic import ValidationError
 
 from src.llm_client import get_client, load_system_prompt
-from src.schema import AccessControlExtraction
 
 MODEL_NAME = "gpt-4.1-mini"
-SYSTEM_PROMPT = "system_prompt.txt"
+
+PROMPT_FILES = [
+    "prompts/system_core.txt",
+    "prompts/access_control/schema_access_control.txt",
+    "prompts/formatting_rules.txt",
+    "prompts/access_control/terminology_access_control.txt",
+    "prompts/normalization_rules.txt",
+    "prompts/conflict_rules.txt",
+    "prompts/access_control/examples_access_control.txt",
+]
+
 
 def build_user_prompt(requirement_text: str) -> str:
     return f"""Convert the following Dutch access control requirement text into JSON.
@@ -20,11 +25,11 @@ Requirement text:
 
 def extract_requirements_json(
     requirement_text: str,
-    system_prompt_path: str = SYSTEM_PROMPT,
-    model: str = MODEL_NAME
-):
+    prompt_files: list[str] = PROMPT_FILES,
+    model: str = MODEL_NAME,
+) -> str:
     client = get_client()
-    system_prompt = load_system_prompt(system_prompt_path)
+    system_prompt = load_system_prompt(prompt_files)
     user_prompt = build_user_prompt(requirement_text)
 
     try:
@@ -46,5 +51,4 @@ def extract_requirements_json(
             "OpenAI API quota/rate-limit error. Check billing, credits, and whether this API key belongs to the correct project."
         ) from exc
 
-    response_text = response.output_text.strip()
-    return response_text
+    return response.output_text.strip()

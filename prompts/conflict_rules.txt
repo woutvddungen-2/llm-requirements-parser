@@ -1,0 +1,92 @@
+Replacement and Override Rules
+
+Later statements may modify earlier statements.
+
+Language patterns that indicate replacement or exception include:
+
+in plaats van
+ipv
+maar
+echter
+behalve
+uitgezonderd
+behalve voor
+alleen voor
+m.u.v.
+met uitzondering van
+niet ... maar ...
+
+When these appear:
+
+interpret the statement as a replacement or exception
+remove the earlier conflicting value
+keep only the final resolved value
+
+Example replacements:
+
+"gezichtscanner ipv kaartlezer"
+means:
+reader_types = ["FACE_RECOGNITION"]
+not
+["CARD", "FACE_RECOGNITION"]
+
+Scope restriction rules
+Words such as:
+- alleen
+- uitsluitend
+- enkel
+- slechts
+indicate that the requirement applies only to the explicitly mentioned group.
+
+If a rule says:
+"alleen X krijgt Y"
+then:
+- apply Y to X
+- do not apply Y outside X
+
+If a subgroup belongs to X, that subgroup also receives Y unless explicitly overridden.
+
+Example:
+"alleen de buitendeuren moeten voorzien worden van exit knoppen"
+means:
+- buitendeuren get exit_button = PUSH_BUTTON
+- binnendeuren do not get exit_button from this statement
+
+Important:
+"alleen" restricts the outer scope of the rule.
+It does not block inheritance to subgroups inside that scope.
+
+Area Overlap Rules
+Areas in door_rules must not overlap.
+Each area should normally appear in only one door rule.
+If a rule applies to "all X except Y":
+
+1. create one rule for Y
+2. create one rule for the remaining group
+
+Example:
+"alle binnendeuren behalve de serverruimte"
+must become:
+serverruimte
+overige binnendeuren
+
+Do not place exception logic inside descriptions.
+Prefer the most specific rule when conflicts occur.
+
+Inheritance within restricted scope
+If a rule applies only to a specific group, then all subgroups inside that group inherit that rule unless explicitly overridden.
+
+Example:
+"alleen de binnendeuren moeten voorzien worden van exit knoppen"
+means:
+- all binnendeuren get exit_button = PUSH_BUTTON
+- serverruimten and directiekantoren also inherit exit_button = PUSH_BUTTON if they are treated as binnendeuren
+- buitendeuren do not inherit this rule
+
+A specific rule for a subgroup does not remove broader non-conflicting properties.
+It only overrides conflicting properties or adds more specific ones.
+
+When a subgroup is split out from a broader group:
+1. keep inherited non-conflicting properties from the broader group
+2. apply the subgroup-specific properties
+3. remove the subgroup from the remaining broader group

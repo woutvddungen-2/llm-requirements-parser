@@ -5,11 +5,18 @@ from dotenv import load_dotenv
 from openai import OpenAI
 
 
-def load_system_prompt(prompt_path: str = "system_prompt.txt") -> str:
-    path = Path(prompt_path)
-    if not path.exists():
-        raise FileNotFoundError(f"System prompt not found: {path.resolve()}")
-    return path.read_text(encoding="utf-8")
+def load_system_prompt(prompt_files: list[str]) -> str:
+    parts: list[str] = []
+
+    for prompt_file in prompt_files:
+        path = Path(prompt_file)
+
+        if not path.exists():
+            raise FileNotFoundError(f"Prompt file not found: {path.resolve()}")
+
+        parts.append(path.read_text(encoding="utf-8").strip())
+
+    return "\n\n".join(parts)
 
 
 def get_client() -> OpenAI:

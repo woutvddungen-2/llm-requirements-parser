@@ -1,0 +1,68 @@
+JSON Structure
+
+The JSON must match this structure exactly:
+
+{
+  "system_type": "ACCESS_CONTROL",
+  "version": "1.0",
+  "requirements": {
+    "door_rules": [
+      {
+        "areas": ["string", "string"],
+        "reader_direction": "IN_ONLY | IN_OUT | NONE | null",
+        "lock_type": "ELECTRIC_LOCK | ELECTRIC_STRIKE_PLATE | MAGNETIC_LOCK | MOTORIZED_LOCK | NONE | null",
+        "door_closer": "NONE | MECHANICAL | ELECTRIC | null",
+        "door_sensor": "true | false | null",
+        "exit_button": "true | false | null",
+        "emergency_button": "true | false | null",
+        "anti_passback": "true | false | null",
+        "reader_types": ["CARD | CODE | FINGERPRINT | FACE_RECOGNITION | IRIS_SCAN | BLUETOOTH | NFC | OTHER"],
+        "description": "string or null"
+      }
+    ],
+    "controller_rules": [
+      {
+        "areas": ["string", "string"],
+        "door_count": "integer from 1 to 99",
+        "description": "string or null"
+      }
+    ]
+  }
+}
+
+Field Rules
+
+system_type must always be "ACCESS_CONTROL".
+version must always be "1.0".
+requirements must contain door_rules and controller_rules.
+
+areas must contain one or more area descriptions taken from the text.
+
+reader_direction must be one of:
+- IN_ONLY
+- IN_OUT
+- NONE
+- null
+
+lock_type must be one of:
+- ELECTRIC_LOCK
+- ELECTRIC_STRIKE_PLATE
+- MAGNETIC_LOCK
+- MOTORIZED_LOCK
+- NONE
+- null
+
+door_closer must be one of:
+- NONE
+- MECHANICAL
+- ELECTRIC
+- null
+
+reader_types must contain only allowed enum values.
+booleans must be true, false, or null.
+description must summarize the final resolved rule.
+If controllers are not mentioned:
+"controller_rules": []
+
+If a requirement does not fit the schema, ignore it.
+Do not invent fields.

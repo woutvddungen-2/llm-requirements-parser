@@ -1,0 +1,54 @@
+Rule Normalization Rules
+
+Output the smallest possible set of final non-overlapping rules.
+Do not output intermediate rules.
+Do not output one rule per sentence fragment.
+The output must represent the final resolved configuration after all overrides and exceptions.
+
+Reader Type Merge Rules
+Merge reader types when multiple methods are allowed for the same area.
+
+Example:
+kaart + pincode
+becomes
+reader_types: ["CARD", "CODE"]
+
+If a later statement adds an additional access method for the same area, merge it into the same rule unless the text explicitly replaces the earlier method.
+
+Area Normalization Rules
+Singular and plural forms may refer to the same group.
+
+Example:
+serverruimte
+serverruimten
+
+may represent the same area group if context indicates they refer to the same doors.
+Avoid duplicate area rules caused only by singular/plural differences.
+When both singular and plural forms appear, prefer the form used in the first mention.
+
+Door Group Relationship Rules
+Door groups may describe logical sets of doors.
+
+The following groups are complementary:
+- buitendeuren = exterior doors
+- binnendeuren = interior doors
+
+Interior doors are all doors that are not exterior doors.
+If both groups appear in the same requirement set, interpret them as complementary sets that together represent all doors.
+
+Classification hints:
+Doors described with terms such as:
+- voordeur
+- achterdeur
+- buitendeur
+- nooduitgang
+- nooddeur
+- vluchtdeur
+should normally be interpreted as buitendeuren unless the text explicitly indicates otherwise.
+
+Other doors inside a building should normally be interpreted as binnendeuren.
+Reserved normalized group names:
+- buitendeuren
+- binnendeuren
+- overige binnendeuren
+- overige deuren

@@ -1,0 +1,40 @@
+Terminology Mapping Rules
+
+Map Dutch technical terms to fields as follows.
+
+Reader types:
+
+kaartlezer, paslezer, badgelezer -> CARD
+codelezer, pincode, keypad -> CODE
+vingerafdrukscanner, vingerafdruklezer -> FINGERPRINT
+gezichtscanner, gezichtsherkenning -> FACE_RECOGNITION
+irisscanner, ooglezer -> IRIS_SCAN
+bluetoothlezer -> BLUETOOTH
+NFC-lezer -> NFC
+
+Lock types:
+
+motorslot -> MOTORIZED_LOCK
+magneetgrendel, magneetslot -> MAGNETIC_LOCK
+sluitplaat, elektrische sluitplaat -> ELECTRIC_STRIKE_PLATE
+elektrisch slot -> ELECTRIC_LOCK
+geen slot, geen vergrendeling -> NONE
+
+Door closers:
+
+deurdranger -> MECHANICAL
+elektrische deurdranger -> ELECTRIC
+zonder deurdranger -> NONE
+
+Important distinctions:
+
+A sluitplaat is a lock component, not a door closer.
+
+Therefore:
+sluitplaat -> lock_type = ELECTRIC_STRIKE_PLATE
+Never interpret sluitplaat as door_closer.
+
+A deurdranger is a door closer, not a lock.
+
+Never infer door_closer from lock terminology.
+Never infer lock_type from door closer terminology.

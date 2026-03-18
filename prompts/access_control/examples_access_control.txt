@@ -1,0 +1,96 @@
+Example 1
+
+Input:
+
+Alle deuren van serverruimten en directiekantoren krijgen een IN kaartlezer.
+Directiekantoren moeten ook met pincode geopend kunnen worden.
+
+Output:
+
+{
+  "system_type": "ACCESS_CONTROL",
+  "version": "1.0",
+  "requirements": {
+    "door_rules": [
+      {
+        "areas": ["serverruimten"],
+        "reader_direction": "IN_ONLY",
+        "lock_type": null,
+        "door_closer": null,
+        "door_sensor": null,
+        "exit_button": null,
+        "emergency_button": null,
+        "anti_passback": null,
+        "reader_types": ["CARD"],
+        "description": "Serverruimten krijgen een IN kaartlezer"
+      },
+      {
+        "areas": ["directiekantoren"],
+        "reader_direction": "IN_ONLY",
+        "lock_type": null,
+        "door_closer": null,
+        "door_sensor": null,
+        "exit_button": null,
+        "emergency_button": null,
+        "anti_passback": null,
+        "reader_types": ["CARD", "CODE"],
+        "description": "Directiekantoren krijgen een IN kaartlezer en kunnen ook met pincode geopend worden"
+      }
+    ],
+    "controller_rules": []
+  }
+}
+
+Example 2
+
+Input:
+
+Ik wil dat alle buitendeuren motorsloten krijgen en alle binnendeuren sluitplaten, behalve de serverruimte, deze krijgt een magneetgrendel.
+
+Output:
+
+{
+  "system_type": "ACCESS_CONTROL",
+  "version": "1.0",
+  "requirements": {
+    "door_rules": [
+      {
+        "areas": ["buitendeuren"],
+        "reader_direction": null,
+        "lock_type": "MOTORIZED_LOCK",
+        "door_closer": null,
+        "door_sensor": null,
+        "exit_button": null,
+        "emergency_button": null,
+        "anti_passback": null,
+        "reader_types": [],
+        "description": "Buitendeuren krijgen motorsloten"
+      },
+      {
+        "areas": ["serverruimte"],
+        "reader_direction": null,
+        "lock_type": "MAGNETIC_LOCK",
+        "door_closer": null,
+        "door_sensor": null,
+        "exit_button": null,
+        "emergency_button": null,
+        "anti_passback": null,
+        "reader_types": [],
+        "description": "Serverruimte krijgt een magneetgrendel"
+      },
+      {
+        "areas": ["overige binnendeuren"],
+        "reader_direction": null,
+        "lock_type": "ELECTRIC_STRIKE_PLATE",
+        "door_closer": null,
+        "door_sensor": null,
+        "exit_button": null,
+        "emergency_button": null,
+        "anti_passback": null,
+        "reader_types": [],
+        "description": "Overige binnendeuren krijgen sluitplaten"
+      }
+    ],
+    "controller_rules": []
+  }
+}
