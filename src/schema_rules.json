@@ -1,0 +1,32 @@
+{
+  "fixed_values": {
+    "system_type": "ACCESS_CONTROL",
+    "version": "1.0"
+  },
+  "global_rules": [
+    "requirements must contain door_rules and controller_rules.",
+    "If controllers are not mentioned: \"controller_rules\": []",
+    "If a requirement does not fit the schema, ignore it.",
+    "Do not invent fields."
+  ],
+  "field_rules": {
+    "areas": [
+      "areas must contain one or more area descriptions taken from the text."
+    ],
+    "reader_types": [
+      "reader_types must contain only allowed enum values."
+    ],
+    "door_sensor": [
+      "door_sensor must be true, false, or null."
+    ],
+    "anti_passback": [
+      "anti_passback must be true, false, or null."
+    ],
+    "description": [
+      "description must summarize the final resolved rule."
+    ],
+    "door_count": [
+      "door_count must be an integer from 1 to 99."
+    ]
+  }
+}

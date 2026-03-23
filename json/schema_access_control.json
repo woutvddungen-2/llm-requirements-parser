@@ -1,0 +1,268 @@
+{
+  "$defs": {
+    "ControllerRule": {
+      "additionalProperties": false,
+      "properties": {
+        "areas": {
+          "description": "Areas to which this controller rule applies",
+          "items": {
+            "type": "string"
+          },
+          "title": "Areas",
+          "type": "array"
+        },
+        "door_count": {
+          "description": "Number of doors controlled by the controller",
+          "maximum": 99,
+          "minimum": 1,
+          "title": "Door Count",
+          "type": "integer"
+        },
+        "description": {
+          "description": "Human-readable summary of the rule",
+          "title": "Description",
+          "type": "string"
+        }
+      },
+      "required": [
+        "door_count",
+        "description"
+      ],
+      "title": "ControllerRule",
+      "type": "object"
+    },
+    "DoorCloserEnum": {
+      "description": "Type of door closer installed on the door.",
+      "enum": [
+        "NONE",
+        "MECHANICAL",
+        "ELECTRIC"
+      ],
+      "title": "DoorCloserEnum",
+      "type": "string"
+    },
+    "DoorRule": {
+      "additionalProperties": false,
+      "description": "Defines the access control configuration for one or more groups of doors.",
+      "properties": {
+        "areas": {
+          "description": "Door groups or areas to which this rule applies",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Areas",
+          "type": "array"
+        },
+        "reader_direction": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ReaderDirectionEnum"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Direction in which readers are installed"
+        },
+        "reader_types": {
+          "description": "Authentication technologies used on the door",
+          "items": {
+            "$ref": "#/$defs/ReaderTypeEnum"
+          },
+          "title": "Reader Types",
+          "type": "array"
+        },
+        "lock_type": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/LockTypeEnum"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Type of lock installed on the door"
+        },
+        "door_closer": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DoorCloserEnum"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Type of door closer installed"
+        },
+        "exit_device": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ExitDeviceEnum"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Exit trigger device on the secure side"
+        },
+        "emergency_button": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/EmergencyButtonEnum"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Emergency release device"
+        },
+        "door_sensor": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Indicates whether the door has an open/close sensor",
+          "title": "Door Sensor"
+        },
+        "anti_passback": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Whether anti-passback logic is enabled",
+          "title": "Anti Passback"
+        },
+        "description": {
+          "description": "Human-readable summary of the rule",
+          "title": "Description",
+          "type": "string"
+        }
+      },
+      "required": [
+        "description"
+      ],
+      "title": "DoorRule",
+      "type": "object"
+    },
+    "EmergencyButtonEnum": {
+      "description": "Emergency release device for the door.",
+      "enum": [
+        "NONE",
+        "STANDALONE",
+        "INTRUSION"
+      ],
+      "title": "EmergencyButtonEnum",
+      "type": "string"
+    },
+    "ExitDeviceEnum": {
+      "description": "Device used to trigger exit from the secure side.",
+      "enum": [
+        "NONE",
+        "PUSH_BUTTON",
+        "ELBOW_ACTUATED",
+        "GROUND_LOOP",
+        "MOTION_SENSOR"
+      ],
+      "title": "ExitDeviceEnum",
+      "type": "string"
+    },
+    "LockTypeEnum": {
+      "description": "Type of access control lock installed on the door.",
+      "enum": [
+        "SOLENOID_LOCK",
+        "ELECTRIC_STRIKE_PLATE",
+        "MAGNETIC_LOCK",
+        "MOTORIZED_LOCK",
+        "NONE"
+      ],
+      "title": "LockTypeEnum",
+      "type": "string"
+    },
+    "ReaderDirectionEnum": {
+      "description": "Direction in which authentication readers are installed on a door.",
+      "enum": [
+        "IN_ONLY",
+        "IN_OUT",
+        "NONE"
+      ],
+      "title": "ReaderDirectionEnum",
+      "type": "string"
+    },
+    "ReaderTypeEnum": {
+      "description": "Authentication technology used by the reader device.",
+      "enum": [
+        "CARD",
+        "CODE",
+        "FINGERPRINT",
+        "FACE_RECOGNITION",
+        "IRIS_SCAN",
+        "BLUETOOTH",
+        "NFC",
+        "WIRELESS_KEYFOB",
+        "MOBILE_APP",
+        "LICENSEPLATE_CAMERA",
+        "OTHER"
+      ],
+      "title": "ReaderTypeEnum",
+      "type": "string"
+    },
+    "Requirements": {
+      "additionalProperties": false,
+      "properties": {
+        "door_rules": {
+          "items": {
+            "$ref": "#/$defs/DoorRule"
+          },
+          "title": "Door Rules",
+          "type": "array"
+        },
+        "controller_rules": {
+          "items": {
+            "$ref": "#/$defs/ControllerRule"
+          },
+          "title": "Controller Rules",
+          "type": "array"
+        }
+      },
+      "title": "Requirements",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "system_type": {
+      "default": "ACCESS_CONTROL",
+      "title": "System Type",
+      "type": "string"
+    },
+    "version": {
+      "default": "1.0",
+      "title": "Version",
+      "type": "string"
+    },
+    "requirements": {
+      "$ref": "#/$defs/Requirements"
+    }
+  },
+  "required": [
+    "requirements"
+  ],
+  "title": "AccessControlSchema",
+  "type": "object"
+}

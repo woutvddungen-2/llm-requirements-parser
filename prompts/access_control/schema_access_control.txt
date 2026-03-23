@@ -8,23 +8,31 @@ The JSON must match this structure exactly:
   "requirements": {
     "door_rules": [
       {
-        "areas": ["string", "string"],
+        "areas": [
+          "string",
+          "string"
+        ],
         "reader_direction": "IN_ONLY | IN_OUT | NONE | null",
+        "reader_types": [
+          "CARD | CODE | FINGERPRINT | FACE_RECOGNITION | IRIS_SCAN | BLUETOOTH | NFC | WIRELESS_KEYFOB | MOBILE_APP | LICENSEPLATE_CAMERA | OTHER"
+        ],
         "lock_type": "SOLENOID_LOCK | ELECTRIC_STRIKE_PLATE | MAGNETIC_LOCK | MOTORIZED_LOCK | NONE | null",
         "door_closer": "NONE | MECHANICAL | ELECTRIC | null",
-        "door_sensor": "true | false | null",
-        "exit_button": "NONE | PUSH_BUTTON | ELBOW_ACTUATED | GROUND_LOOP | MOTION_SENSOR | null",
+        "exit_device": "NONE | PUSH_BUTTON | ELBOW_ACTUATED | GROUND_LOOP | MOTION_SENSOR | null",
         "emergency_button": "NONE | STANDALONE | INTRUSION | null",
+        "door_sensor": "true | false | null",
         "anti_passback": "true | false | null",
-        "reader_types": ["CARD | CODE | FINGERPRINT | FACE_RECOGNITION | IRIS_SCAN | BLUETOOTH | NFC | LICENSEPLATE_CAMERA | WIRELESS_KEYFOB | MOBILE_APP | OTHER"],
-        "description": "string or null"
+        "description": "string"
       }
     ],
     "controller_rules": [
       {
-        "areas": ["string", "string"],
+        "areas": [
+          "string",
+          "string"
+        ],
         "door_count": "integer from 1 to 99",
-        "description": "string or null"
+        "description": "string"
       }
     ]
   }
@@ -33,10 +41,16 @@ The JSON must match this structure exactly:
 Field Rules
 
 system_type must always be "ACCESS_CONTROL".
+
 version must always be "1.0".
+
 requirements must contain door_rules and controller_rules.
 
-areas must contain one or more area descriptions taken from the text.
+If controllers are not mentioned: "controller_rules": []
+
+If a requirement does not fit the schema, ignore it.
+
+Do not invent fields.
 
 reader_direction must be one of:
 - IN_ONLY
@@ -58,11 +72,28 @@ door_closer must be one of:
 - ELECTRIC
 - null
 
-reader_types must contain only allowed enum values.
-booleans must be true, false, or null.
-description must summarize the final resolved rule.
-If controllers are not mentioned:
-"controller_rules": []
+exit_device must be one of:
+- NONE
+- PUSH_BUTTON
+- ELBOW_ACTUATED
+- GROUND_LOOP
+- MOTION_SENSOR
+- null
 
-If a requirement does not fit the schema, ignore it.
-Do not invent fields.
+emergency_button must be one of:
+- NONE
+- STANDALONE
+- INTRUSION
+- null
+
+areas must contain one or more area descriptions taken from the text.
+
+reader_types must contain only allowed enum values.
+
+door_sensor must be true, false, or null.
+
+anti_passback must be true, false, or null.
+
+description must summarize the final resolved rule.
+
+door_count must be an integer from 1 to 99.
