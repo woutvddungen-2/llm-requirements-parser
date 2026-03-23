@@ -16,7 +16,7 @@ class LockTypeEnum(str, Enum):
     """
     Type of access control lock installed on the door.
     """
-    ELECTRIC_LOCK = "ELECTRIC_LOCK"
+    SOLENOID_LOCK = "SOLENOID_LOCK"
     ELECTRIC_STRIKE_PLATE = "ELECTRIC_STRIKE_PLATE"
     MAGNETIC_LOCK = "MAGNETIC_LOCK"
     MOTORIZED_LOCK = "MOTORIZED_LOCK"
@@ -34,6 +34,9 @@ class ReaderTypeEnum(str, Enum):
     IRIS_SCAN = "IRIS_SCAN"
     BLUETOOTH = "BLUETOOTH"
     NFC = "NFC"
+    WIRELESS_KEYFOB = "WIRELESS_KEYFOB"
+    MOBILE_APP = "MOBILE_APP"
+    LICENSEPLATE_CAMERA = "LICENSEPLATE_CAMERA"
     OTHER = "OTHER"
 
 
@@ -61,6 +64,8 @@ class ExitDeviceEnum(str, Enum):
     """
     NONE = "NONE"
     PUSH_BUTTON = "PUSH_BUTTON"
+    ELBOW_ACTUATED = "ELBOW_ACTUATED"
+    GROUND_LOOP = "GROUND_LOOP"
     MOTION_SENSOR = "MOTION_SENSOR"
 
 
@@ -120,3 +125,19 @@ class DoorRule(BaseModel):
         default=None,
         description="Human-readable summary of the rule"
     )
+
+class ControllerRule(BaseModel):
+    areas: List[str]
+    door_count: int = Field(ge=1, le=99)
+    description: Optional[str] = None
+
+
+class Requirements(BaseModel):
+    door_rules: List[DoorRule] = Field(default_factory=list)
+    controller_rules: List[ControllerRule] = Field(default_factory=list)
+
+
+class AccessControlSchema(BaseModel):
+    system_type: str = Field(default="ACCESS_CONTROL")
+    version: str = Field(default="1.0")
+    requirements: Requirements

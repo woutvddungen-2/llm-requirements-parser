@@ -3,7 +3,6 @@ Terminology Mapping Rules
 Map Dutch technical terms to fields as follows.
 
 Reader types:
-
 kaartlezer, paslezer, badgelezer -> CARD
 codelezer, pincode, keypad -> CODE
 vingerafdrukscanner, vingerafdruklezer -> FINGERPRINT
@@ -11,9 +10,11 @@ gezichtscanner, gezichtsherkenning -> FACE_RECOGNITION
 irisscanner, ooglezer -> IRIS_SCAN
 bluetoothlezer -> BLUETOOTH
 NFC-lezer -> NFC
+handzende -> WIRELESS_KEYFOB
+draadloze drukknop -> WIRELESS_KEYFOB
+app -> MOBILE_APP
 
 Lock types:
-
 motorslot -> MOTORIZED_LOCK
 magneetgrendel, magneetslot -> MAGNETIC_LOCK
 sluitplaat, elektrische sluitplaat -> ELECTRIC_STRIKE_PLATE
@@ -21,10 +22,16 @@ elektrisch slot -> ELECTRIC_LOCK
 geen slot, geen vergrendeling -> NONE
 
 Door closers:
-
 deurdranger -> MECHANICAL
 elektrische deurdranger -> ELECTRIC
 zonder deurdranger -> NONE
+
+Exit buttons:
+elleboogschakelaar -> ELBOW_ACTUATED
+exit knop -> PUSH_BUTTON
+panieksluiting -> NONE
+uitrijlus -> GROUND_LOOP
+
 
 Important distinctions:
 

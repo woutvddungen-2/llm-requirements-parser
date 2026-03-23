@@ -10,13 +10,13 @@ The JSON must match this structure exactly:
       {
         "areas": ["string", "string"],
         "reader_direction": "IN_ONLY | IN_OUT | NONE | null",
-        "lock_type": "ELECTRIC_LOCK | ELECTRIC_STRIKE_PLATE | MAGNETIC_LOCK | MOTORIZED_LOCK | NONE | null",
+        "lock_type": "SOLENOID_LOCK | ELECTRIC_STRIKE_PLATE | MAGNETIC_LOCK | MOTORIZED_LOCK | NONE | null",
         "door_closer": "NONE | MECHANICAL | ELECTRIC | null",
         "door_sensor": "true | false | null",
-        "exit_button": "true | false | null",
-        "emergency_button": "true | false | null",
+        "exit_button": "NONE | PUSH_BUTTON | ELBOW_ACTUATED | GROUND_LOOP | MOTION_SENSOR | null",
+        "emergency_button": "NONE | STANDALONE | INTRUSION | null",
         "anti_passback": "true | false | null",
-        "reader_types": ["CARD | CODE | FINGERPRINT | FACE_RECOGNITION | IRIS_SCAN | BLUETOOTH | NFC | OTHER"],
+        "reader_types": ["CARD | CODE | FINGERPRINT | FACE_RECOGNITION | IRIS_SCAN | BLUETOOTH | NFC | LICENSEPLATE_CAMERA | WIRELESS_KEYFOB | MOBILE_APP | OTHER"],
         "description": "string or null"
       }
     ],
@@ -45,7 +45,7 @@ reader_direction must be one of:
 - null
 
 lock_type must be one of:
-- ELECTRIC_LOCK
+- SOLENOID_LOCK
 - ELECTRIC_STRIKE_PLATE
 - MAGNETIC_LOCK
 - MOTORIZED_LOCK
