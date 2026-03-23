@@ -77,6 +77,7 @@ class DoorRule(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     areas: List[str] = Field(
+        min_length=1,
         default_factory=list,
         description="Door groups or areas to which this rule applies"
     )
@@ -121,23 +122,37 @@ class DoorRule(BaseModel):
         description="Whether anti-passback logic is enabled"
     )
 
-    description: Optional[str] = Field(
-        default=None,
+    description: str = Field(
         description="Human-readable summary of the rule"
     )
 
 class ControllerRule(BaseModel):
-    areas: List[str]
-    door_count: int = Field(ge=1, le=99)
-    description: Optional[str] = None
+    model_config = ConfigDict(extra="forbid")
 
+    areas: List[str] = Field(
+        default_factory=list,
+        description="Areas to which this controller rule applies",
+    )
+
+    door_count: int = Field(
+        ge=1, le=99,
+        description="Number of doors controlled by the controller",
+    )
+
+    description: str = Field(
+        description="Human-readable summary of the rule",
+    )
 
 class Requirements(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     door_rules: List[DoorRule] = Field(default_factory=list)
     controller_rules: List[ControllerRule] = Field(default_factory=list)
 
 
 class AccessControlSchema(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     system_type: str = Field(default="ACCESS_CONTROL")
     version: str = Field(default="1.0")
     requirements: Requirements
