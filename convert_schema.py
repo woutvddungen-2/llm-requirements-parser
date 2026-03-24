@@ -7,7 +7,7 @@ from typing import Any, List, Union, get_args, get_origin
 
 from pydantic import BaseModel
 
-from src.schema import AccessControlSchema
+from src.schema_access_control import AccessControlSchema
 
 
 ROOT_MODEL = AccessControlSchema
