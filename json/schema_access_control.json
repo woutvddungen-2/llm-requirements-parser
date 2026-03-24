@@ -247,6 +247,7 @@
   "additionalProperties": false,
   "properties": {
     "system_type": {
+      "const": "ACCESS_CONTROL",
       "default": "ACCESS_CONTROL",
       "title": "System Type",
       "type": "string"

@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import List, Optional
+from typing import List, Optional, Literal
 from pydantic import BaseModel, Field, ConfigDict
 
 
@@ -153,6 +153,6 @@ class Requirements(BaseModel):
 class AccessControlSchema(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    system_type: str = Field(default="ACCESS_CONTROL")
+    system_type: Literal["ACCESS_CONTROL"] = "ACCESS_CONTROL"
     version: str = Field(default="1.0")
     requirements: Requirements
