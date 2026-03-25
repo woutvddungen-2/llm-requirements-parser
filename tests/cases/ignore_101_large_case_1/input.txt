@@ -1,0 +1,7 @@
+Alle buitendeuren krijgen een kaartlezer en motorslot.
+Alle binnendeuren krijgen een kaartlezer, deurdranger en sluitplaat.
+
+De serverruimte krijgt een gezichtscanner in plaats van een kaartlezer.
+Directiekantoren krijgen ook een pincodelezer.
+
+De slagboom wordt geopend met kentekencamera en uitrijlus.

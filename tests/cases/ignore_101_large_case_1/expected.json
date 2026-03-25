@@ -1,0 +1,70 @@
+{
+    "system_type": "ACCESS_CONTROL", 
+    "version": "1.0", 
+    "requirements": 
+    {
+        "door_rules": [
+            {
+                "areas": ["buitendeuren"], 
+                "reader_direction": null, 
+                "reader_types": ["CARD"], 
+                "lock_type": "MOTORIZED_LOCK", 
+                "door_closer": null, 
+                "exit_device": null, 
+                "emergency_button": null, 
+                "door_sensor": null, 
+                "anti_passback": null, 
+                "description": ""
+            }, 
+            {
+                "areas": ["serverruimte"], 
+                "reader_direction": null, 
+                "reader_types": ["FACE_RECOGNITION"], 
+                "lock_type": "ELECTRIC_STRIKE_PLATE", 
+                "door_closer": "MECHANICAL", 
+                "exit_device": null, 
+                "emergency_button": null, 
+                "door_sensor": null, 
+                "anti_passback": null, 
+                "description": ""
+            }, 
+            {
+                "areas": ["overige binnendeuren"], 
+                "reader_direction": null, 
+                "reader_types": ["CARD"], 
+                "lock_type": "ELECTRIC_STRIKE_PLATE", 
+                "door_closer": "MECHANICAL", 
+                "exit_device": null, 
+                "emergency_button": null, 
+                "door_sensor": null, 
+                "anti_passback": null, 
+                "description": ""
+            }, 
+            {
+                "areas": ["directiekantoren"], 
+                "reader_direction": null, 
+                "reader_types": ["CARD", "CODE"], 
+                "lock_type": "ELECTRIC_STRIKE_PLATE", 
+                "door_closer": "MECHANICAL", 
+                "exit_device": null, 
+                "emergency_button": null, 
+                "door_sensor": null, 
+                "anti_passback": null, 
+                "description": ""
+            }, 
+            {
+                "areas": ["slagboom"], 
+                "reader_direction": null, 
+                "reader_types": ["LICENSEPLATE_CAMERA"], 
+                "lock_type": null, 
+                "door_closer": null, 
+                "exit_device": "GROUND_LOOP", 
+                "emergency_button": null, 
+                "door_sensor": null, 
+                "anti_passback": null, 
+                "description": ""
+            }
+            ],
+        "controller_rules": []
+    }
+}

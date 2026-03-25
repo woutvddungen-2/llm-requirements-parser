@@ -7,10 +7,35 @@ INTERPRETATION RULES
    "alleen", "uitsluitend" → applies ONLY to that group.
 
 3. Inheritance:
-   Subgroups inherit properties unless overridden.
-   Inheritance is field-specific: subgroups inherit all non-conflicting fields from broader rules.
+   Inheritance is mandatory and field-specific.
+   Subgroups inherit by copying the broader rule first, then applying only the explicitly stated change.
+   "ook" adds properties.
+   "in plaats van" replaces only the conflicting property and preserves the rest.
+   
+   Example:
+   If all binnendeuren have kaartlezer, deurdranger and sluitplaat, and
+   "De serverruimte krijgt een gezichtscanner in plaats van een kaartlezer",
+   then serverruimte keeps deurdranger and sluitplaat and only reader_types changes.
 
-4. Area splitting:
+4. Door logic:
+There are two broad groups:
+   - buitendeuren
+   - binnendeuren
+
+   hints:
+   - voordeur, achterdeur, buitendeur, nooduitgang, uitgang, vluchtdeur are typically buitendeuren unless stated otherwise.
+   - doors of indoor spaces such as serverruimte, directiekantoor, magazijn, kantoor and vergaderruimte are typically binnendeuren unless stated otherwise.
+
+   Area-to-door interpretation:
+   When an area or room is assigned door hardware, reader, lock, closer, exit or emergency properties, interpret this as applying to the doors of that area.
+
+   Examples:
+   - "De serverruimte krijgt een gezichtscanner" -> the doors of the serverruimte get a gezichtscanner
+   - "Directiekantoren krijgen ook een pincodelezer" -> the doors of directiekantoren also get a pincodelezer
+
+   Named areas such as serverruimte or directiekantoor are not broad door groups by themselves; only their doors inherit door properties.
+
+5. Area splitting:
    If exceptions exist → split into:
    - specific subgroup
    - remaining group (e.g. "overige binnendeuren")
@@ -18,14 +43,14 @@ INTERPRETATION RULES
    - the specific subgroup
    - the residual broader group using the canonical name "overige <groep>"
 
-5. No overlap:
+6. No overlap:
    door_rules areas must not overlap.
 
-6. Do NOT infer:
+7. Do NOT infer:
    - No lock from door closer
    - No direction from reader type
 
-7. Replacement
+8. Replacement
    Replacement is field-specific, not whole-rule replacement: "in plaats van" replaces only the conflicting field, all other inherited fields remain.
 ---
 
