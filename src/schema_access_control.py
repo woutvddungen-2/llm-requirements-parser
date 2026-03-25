@@ -7,7 +7,8 @@ class ReaderDirectionEnum(str, Enum):
     """
     Direction in which authentication readers are installed on a door.
     """
-    IN_ONLY = "IN_ONLY"        # reader on secure side only
+    IN_ONLY = "IN_ONLY"        # reader on non-secure side only
+    OUT_ONLY = "OUT_ONLY"      # reader on secure side only
     IN_OUT = "IN_OUT"          # readers on both sides
     NONE = "NONE"              # no reader
 

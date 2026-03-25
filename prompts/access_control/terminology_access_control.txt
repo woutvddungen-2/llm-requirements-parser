@@ -1,46 +1,47 @@
-Terminology Mapping Rules
+TERMINOLOGY (NL → ENUM)
 
-Map Dutch technical terms to fields as follows.
+Reader direction:
+inlezer/in lezer/in lezers/in kaartlezer/in kaartlezers -> IN_ONLY
+uitlezer/uit lezer/uit lezers/uit kaartlezer/uit kaartlezers -> OUT_ONLY
+inuitlezer/inuit lezer/in- en uitlezer/in en uitlezer -> IN_OUT
+geen lezer -> NONE
+   Otherwise → null
 
-Reader types:
-kaartlezer, paslezer, badgelezer, magneetstriplezer -> CARD
-codelezer, pincode, keypad -> CODE
-vingerafdrukscanner, vingerafdruklezer -> FINGERPRINT
-gezichtscanner, gezichtsherkenning -> FACE_RECOGNITION
-irisscanner, ooglezer -> IRIS_SCAN
-bluetoothlezer -> BLUETOOTH
-NFC-lezer -> NFC
-handzende -> WIRELESS_KEYFOB
-draadloze drukknop -> WIRELESS_KEYFOB
-app -> MOBILE_APP
+Reader:
+kaart/pas/badge → CARD
+code/pincode/keypad → CODE
+vingerafdruk → FINGERPRINT
+gezicht → FACE_RECOGNITION
+iris → IRIS_SCAN
+bluetooth → BLUETOOTH
+nfc → NFC
+handzender → WIRELESS_KEYFOB
+app → MOBILE_APP
+kenteken → LICENSEPLATE_CAMERA
 
-Lock types:
-motorslot -> MOTORIZED_LOCK
-magneetgrendel, magneetslot -> MAGNETIC_LOCK
-sluitplaat, elektrische sluitplaat -> ELECTRIC_STRIKE_PLATE
-elektrisch slot -> ELECTRIC_LOCK
-geen slot, geen vergrendeling -> NONE
+Lock:
+motorslot → MOTORIZED_LOCK
+magneet → MAGNETIC_LOCK
+sluitplaat → ELECTRIC_STRIKE_PLATE
+elektrisch slot → SOLENOID_LOCK
+geen slot → NONE
 
-Door closers:
-deurdranger -> MECHANICAL
-elektrische deurdranger -> ELECTRIC
-zonder deurdranger -> NONE
+Door closer:
+deurdranger → MECHANICAL
+elektrische deurdranger → ELECTRIC
+zonder deurdranger → NONE
 
-Exit devices:
-elleboogschakelaar -> ELBOW_ACTUATED
-exit knop -> PUSH_BUTTON
-panieksluiting -> NONE
-uitrijlus -> GROUND_LOOP
+Exit:
+exit knop → PUSH_BUTTON
+elleboog → ELBOW_ACTUATED
+uitrijlus → GROUND_LOOP
+bewegingssensor → MOTION_SENSOR
 
-Important distinctions:
+Emergency:
+noodknop → STANDALONE
+gekoppeld aan inbraak → INTRUSION
 
-A sluitplaat is a lock component, not a door closer.
+Special case:
+- uitrijlus -> exit_device = GROUND_LOOP
+- never map "uitrijlus" to reader_direction
 
-Therefore:
-sluitplaat -> lock_type = ELECTRIC_STRIKE_PLATE
-Never interpret sluitplaat as door_closer.
-
-A deurdranger is a door closer, not a lock.
-
-Never infer door_closer from lock terminology.
-Never infer lock_type from door closer terminology.

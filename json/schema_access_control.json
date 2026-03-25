@@ -199,6 +199,7 @@
       "description": "Direction in which authentication readers are installed on a door.",
       "enum": [
         "IN_ONLY",
+        "OUT_ONLY",
         "IN_OUT",
         "NONE"
       ],

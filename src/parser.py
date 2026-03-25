@@ -7,10 +7,8 @@ MODEL_NAME = "gpt-4.1-mini"
 PROMPT_FILES = [
     "prompts/system_core.txt",
     "prompts/access_control/schema_access_control.txt",
-    "prompts/formatting_rules.txt",
     "prompts/access_control/terminology_access_control.txt",
-    "prompts/normalization_rules.txt",
-    "prompts/conflict_rules.txt",
+    "prompts/logic_rules.txt",
     "prompts/access_control/examples_access_control.txt",
 ]
 
