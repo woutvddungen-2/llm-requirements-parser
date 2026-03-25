@@ -189,6 +189,7 @@
         "ELECTRIC_STRIKE_PLATE",
         "MAGNETIC_LOCK",
         "MOTORIZED_LOCK",
+        "OTHER",
         "NONE"
       ],
       "title": "LockTypeEnum",

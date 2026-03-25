@@ -16,7 +16,7 @@ The JSON must match this structure exactly:
         "reader_types": [
           "CARD | CODE | FINGERPRINT | FACE_RECOGNITION | IRIS_SCAN | BLUETOOTH | NFC | WIRELESS_KEYFOB | MOBILE_APP | LICENSEPLATE_CAMERA | OTHER"
         ],
-        "lock_type": "SOLENOID_LOCK | ELECTRIC_STRIKE_PLATE | MAGNETIC_LOCK | MOTORIZED_LOCK | NONE | null",
+        "lock_type": "SOLENOID_LOCK | ELECTRIC_STRIKE_PLATE | MAGNETIC_LOCK | MOTORIZED_LOCK | OTHER | NONE | null",
         "door_closer": "NONE | MECHANICAL | ELECTRIC | null",
         "exit_device": "NONE | PUSH_BUTTON | ELBOW_ACTUATED | GROUND_LOOP | MOTION_SENSOR | null",
         "emergency_button": "NONE | STANDALONE | INTRUSION | null",
@@ -63,6 +63,7 @@ lock_type must be one of:
 - ELECTRIC_STRIKE_PLATE
 - MAGNETIC_LOCK
 - MOTORIZED_LOCK
+- OTHER
 - NONE
 - null
 
