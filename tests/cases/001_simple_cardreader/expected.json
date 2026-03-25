@@ -1,0 +1,21 @@
+{
+  "system_type": "ACCESS_CONTROL",
+  "version": "1.0",
+  "requirements": {
+    "door_rules": [
+      {
+        "areas": ["serverruimte"],
+        "reader_direction": null,
+        "reader_types": ["CARD"],
+        "lock_type": null,
+        "door_closer": null,
+        "door_sensor": null,
+        "exit_device": null,
+        "emergency_button": null,
+        "anti_passback": null,
+        "description": ""
+      }
+    ],
+    "controller_rules": []
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "system_type": "ACCESS_CONTROL",
+  "version": "1.0",
+  "requirements": {
+    "door_rules": [
+      {
+        "areas": ["overige binnendeuren"],
+        "reader_direction": null,
+        "reader_types": [],
+        "lock_type": "ELECTRIC_STRIKE_PLATE",
+        "door_closer": null,
+        "door_sensor": null,
+        "exit_device": null,
+        "emergency_button": null,
+        "anti_passback": null,
+        "description": "Serverruimte krijgt geen deurdranger"
+      },
+        {
+        "areas": ["serverruimte"],
+        "reader_direction": null,
+        "reader_types": [],
+        "lock_type": "MOTORIZED_LOCK",
+        "door_closer": null,
+        "door_sensor": null,
+        "exit_device": null,
+        "emergency_button": null,
+        "anti_passback": null,
+        "description": "Serverruimte krijgt geen deurdranger"
+      }
+    ],
+    "controller_rules": []
+  }
+}

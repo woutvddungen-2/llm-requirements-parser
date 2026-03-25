@@ -1,0 +1,21 @@
+{
+  "system_type": "ACCESS_CONTROL",
+  "version": "1.0",
+  "requirements": {
+    "door_rules": [
+      {
+        "areas": ["serverruimte"],
+        "reader_direction": null,
+        "reader_types": [],
+        "lock_type": null,
+        "door_closer": "NONE",
+        "door_sensor": null,
+        "exit_device": null,
+        "emergency_button": null,
+        "anti_passback": null,
+        "description": "Serverruimte krijgt geen deurdranger"
+      }
+    ],
+    "controller_rules": []
+  }
+}
