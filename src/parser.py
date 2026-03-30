@@ -1,4 +1,6 @@
 from src.llm_client import generate_text, load_system_prompt
+from src.llm_types import LLMResult
+
 
 PROMPT_FILES = [
     "prompts/system_core.txt",
@@ -10,6 +12,9 @@ PROMPT_FILES = [
 
 
 def build_user_prompt(requirement_text: str) -> str:
+    """
+    Build the user prompt from the raw requirement text.
+    """
     return f"""Convert the following Dutch access control requirement text into JSON.
 
 Requirement text:
@@ -21,9 +26,19 @@ def extract_requirements_json(
     requirement_text: str,
     model: str,
     prompt_files: list[str] = PROMPT_FILES,
-) -> str:
+) -> LLMResult:
+    """
+    Extract structured access control requirements using the specified LLM.
+
+    Returns:
+        LLMResult containing:
+        - raw model output (text)
+        - timing metadata
+        - token usage (if available)
+    """
     if not model or not model.strip():
         raise ValueError("Model name must be provided and cannot be empty.")
+
     system_prompt = load_system_prompt(prompt_files)
     user_prompt = build_user_prompt(requirement_text)
 

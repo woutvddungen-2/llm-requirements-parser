@@ -1,6 +1,7 @@
 from pathlib import Path
 
 from src.openai_client import openai_generate_text
+from src.llm_types import LLMResult
 
 
 def load_system_prompt(prompt_files: list[str]) -> str:
@@ -43,7 +44,7 @@ def parse_model_spec(model: str) -> tuple[str, str]:
     return vendor, model_name
 
 
-def generate_text(system_prompt: str, user_prompt: str, model: str) -> str:
+def generate_text(system_prompt: str, user_prompt: str, model: str) -> LLMResult:
     """
     Route generation to the correct vendor-specific implementation.
     """
