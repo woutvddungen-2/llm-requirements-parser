@@ -15,11 +15,12 @@ def discover_cases() -> list[Path]:
     tests = sorted([p for p in CASES_DIR.iterdir() if p.is_dir()])
     return [p for p in tests if (p / "input.txt").exists() and (p / "expected.json").exists() and not p.name.startswith("ignore_")]
 
-def log_failure(case_name: str, requirement_text: str, expected: dict, actual: dict, diff: str) -> None:
+def log_failure(case_name: str, model: str, requirement_text: str, expected: dict, actual: dict, diff: str) -> None:
     LOG_DIR.mkdir(parents=True, exist_ok=True)
     entry = {
         "timestamp": datetime.now(UTC).isoformat(),
         "case": case_name,
+        "model": model,
         "input": requirement_text,
         "expected": expected,
         "actual": actual,
@@ -30,14 +31,14 @@ def log_failure(case_name: str, requirement_text: str, expected: dict, actual: d
         f.write(json.dumps(entry, ensure_ascii=False) + "\n")
 
 @pytest.mark.parametrize("case_dir", discover_cases(), ids=lambda p: p.name)
-def test_extraction_matches_expected(case_dir: Path) -> None:
+def test_extraction_matches_expected(case_dir: Path, model: str) -> None:
     input_path = case_dir / "input.txt"
     expected_path = case_dir / "expected.json"
 
     requirement_text = load_text(input_path)
     expected = load_json(expected_path)
 
-    raw_output = extract_requirements_json(requirement_text)
+    raw_output = extract_requirements_json(requirement_text, model=model)
     validated = validate_output(raw_output)
 
     actual = validated.model_dump(exclude_none=True, exclude_unset=True, exclude_defaults=False)
@@ -53,6 +54,7 @@ def test_extraction_matches_expected(case_dir: Path) -> None:
     if actual_normalized != expected_normalized:
         log_failure(
             case_name=case_dir.name,
+            model=model,
             requirement_text=requirement_text,
             expected=expected,
             actual=actual,
