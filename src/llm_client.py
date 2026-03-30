@@ -44,13 +44,13 @@ def parse_model_spec(model: str) -> tuple[str, str]:
     return vendor, model_name
 
 
-def generate_text(system_prompt: str, user_prompt: str, model: str) -> LLMResult:
+def generate_text(system_prompt: str, user_prompt: str, model: str, max_tokens: int) -> LLMResult:
     """
     Route generation to the correct vendor-specific implementation.
     """
     vendor, model_name = parse_model_spec(model)
 
     if vendor == "openai":
-        return openai_generate_text(system_prompt, user_prompt, model_name)
-
+        return openai_generate_text(system_prompt, user_prompt, model_name, max_tokens)
+     
     raise ValueError(f"Unsupported vendor: {vendor}")

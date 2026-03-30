@@ -1,6 +1,7 @@
 from src.llm_client import generate_text, load_system_prompt
 from src.llm_types import LLMResult
 
+DEFAULT_MAX_TOKENS = 4096
 
 PROMPT_FILES = [
     "prompts/system_core.txt",
@@ -25,7 +26,8 @@ Requirement text:
 def extract_requirements_json(
     requirement_text: str,
     model: str,
-    prompt_files: list[str] = PROMPT_FILES,
+    max_tokens: int = DEFAULT_MAX_TOKENS,
+    prompt_files: list[str] = PROMPT_FILES,    
 ) -> LLMResult:
     """
     Extract structured access control requirements using the specified LLM.
@@ -46,4 +48,5 @@ def extract_requirements_json(
         system_prompt=system_prompt,
         user_prompt=user_prompt,
         model=model,
+        max_tokens=max_tokens,
     )

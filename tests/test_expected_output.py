@@ -32,7 +32,7 @@ def test_extraction_matches_expected(case_dir: Path, model: str) -> None:
     expected = load_json(expected_path)
 
     llm_result = extract_requirements_json(requirement_text, model=model)
-    validated = validate_output(llm_result)
+    validated = validate_output(llm_result.text)
 
     actual = validated.model_dump(exclude_none=True, exclude_unset=True, exclude_defaults=False)
 
