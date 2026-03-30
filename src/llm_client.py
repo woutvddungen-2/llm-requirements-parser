@@ -1,8 +1,8 @@
 from pathlib import Path
 
 from src.openai_client import openai_generate_text
+from src.anthropic_client import anthropic_generate_text
 from src.llm_types import LLMResult
-
 
 def load_system_prompt(prompt_files: list[str]) -> str:
     """
@@ -52,5 +52,8 @@ def generate_text(system_prompt: str, user_prompt: str, model: str, max_tokens: 
 
     if vendor == "openai":
         return openai_generate_text(system_prompt, user_prompt, model_name, max_tokens)
+    if vendor == "anthropic":
+        return anthropic_generate_text(system_prompt, user_prompt, model_name, max_tokens)
+
      
     raise ValueError(f"Unsupported vendor: {vendor}")
