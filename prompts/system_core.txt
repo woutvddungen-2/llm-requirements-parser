@@ -11,7 +11,5 @@ Output rules:
 - Do NOT assume defaults or infer engineering rules.
 
 Missing values:
-- Single value → null
-- List → []
+- omit the field unless explicitly present
 - Use "NONE" only if absence is explicitly stated.
-- Never convert null → NONE.

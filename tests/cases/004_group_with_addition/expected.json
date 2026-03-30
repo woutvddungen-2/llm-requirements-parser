@@ -7,24 +7,12 @@
         "areas": ["serverruimten"],
         "reader_direction": "IN_ONLY",
         "reader_types": ["CARD"],
-        "lock_type": null,
-        "door_closer": null,
-        "door_sensor": null,
-        "exit_device": null,
-        "emergency_button": null,
-        "anti_passback": null,
         "description": "Serverruimte krijgt geen deurdranger"
       },
         {
         "areas": ["directiekantoren"],
         "reader_direction": "IN_ONLY",
         "reader_types": ["CARD", "CODE"],
-        "lock_type": null,
-        "door_closer": null,
-        "door_sensor": null,
-        "exit_device": null,
-        "emergency_button": null,
-        "anti_passback": null,
         "description": "Serverruimte krijgt geen deurdranger"
       }
     ],

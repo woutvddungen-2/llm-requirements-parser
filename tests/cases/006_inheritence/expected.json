@@ -7,24 +7,14 @@
         "areas": ["overige binnendeuren"],
         "reader_direction": "IN_ONLY",
         "reader_types": ["CARD"],
-        "lock_type": null,
         "door_closer": "MECHANICAL",
-        "door_sensor": null,
-        "exit_device": null,
-        "emergency_button": null,
-        "anti_passback": null,
         "description": ""
       },
         {
         "areas": ["directiekantoren"],
         "reader_direction": "IN_ONLY",
         "reader_types": ["CARD", "CODE"],
-        "lock_type": null,
         "door_closer": "MECHANICAL",
-        "door_sensor": null,
-        "exit_device": null,
-        "emergency_button": null,
-        "anti_passback": null,
         "description": ""
       }
     ],

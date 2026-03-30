@@ -40,7 +40,7 @@ def test_extraction_matches_expected(case_dir: Path) -> None:
     raw_output = extract_requirements_json(requirement_text)
     validated = validate_output(raw_output)
 
-    actual = json.loads(validated.model_dump_json())
+    actual = validated.model_dump(exclude_none=True, exclude_unset=True, exclude_defaults=False)
 
     actual_normalized = normalize_for_comparison(actual)
     expected_normalized = normalize_for_comparison(expected)

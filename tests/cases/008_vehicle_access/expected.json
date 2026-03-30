@@ -8,23 +8,12 @@
         "reader_direction": "IN_ONLY",
         "reader_types": ["CARD"],
         "lock_type": "ELECTRIC_STRIKE_PLATE",
-        "door_closer": null,
-        "door_sensor": null,
-        "exit_device": null,
-        "emergency_button": null,
-        "anti_passback": null,
         "description": ""
       },
         {
         "areas": ["slagboom"],
-        "reader_direction": null,
         "reader_types": ["LICENSEPLATE_CAMERA"],
-        "lock_type": null,
-        "door_closer": null,
-        "door_sensor": null,
         "exit_device": "GROUND_LOOP",
-        "emergency_button": null,
-        "anti_passback": null,
         "description": ""
       }
     ],

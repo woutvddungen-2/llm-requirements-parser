@@ -9,14 +9,14 @@ Root:
 
 DoorRule:
 - areas: List[string]
-- reader_direction: Single[IN_ONLY | OUT_ONLY | IN_OUT | NONE | null]
+- reader_direction: Single[IN_ONLY | OUT_ONLY | IN_OUT | NONE]
 - reader_types: List[CARD | CODE | FINGERPRINT | FACE_RECOGNITION | IRIS_SCAN | BLUETOOTH | NFC | WIRELESS_KEYFOB | MOBILE_APP | LICENSEPLATE_CAMERA | OTHER]
-- lock_type: Single[SOLENOID_LOCK | ELECTRIC_STRIKE_PLATE | MAGNETIC_LOCK | MOTORIZED_LOCK | OTHER | NONE | null]
-- door_closer: Single[NONE | MECHANICAL | ELECTRIC | null]
-- exit_device: Single[NONE | PUSH_BUTTON | ELBOW_ACTUATED | GROUND_LOOP | MOTION_SENSOR | null]
-- emergency_button: Single[NONE | STANDALONE | INTRUSION | null]
-- door_sensor: Single[true | false | null]
-- anti_passback: Single[true | false | null]
+- lock_type: Single[SOLENOID_LOCK | ELECTRIC_STRIKE_PLATE | MAGNETIC_LOCK | MOTORIZED_LOCK | OTHER | NONE]
+- door_closer: Single[NONE | MECHANICAL | ELECTRIC]
+- exit_device: Single[NONE | PUSH_BUTTON | ELBOW_ACTUATED | GROUND_LOOP | MOTION_SENSOR]
+- emergency_button: Single[NONE | STANDALONE | INTRUSION]
+- door_sensor: Single[true | false]
+- anti_passback: Single[true | false]
 - description: Single[string]
 
 ControllerRule:

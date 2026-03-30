@@ -44,53 +44,48 @@ def enum_values(enum_cls: type[Enum]) -> list[str]:
     return [str(member.value) for member in enum_cls]
 
 
-def format_union(values: list[str], optional: bool = False) -> str:
-    if optional and "null" not in values:
-        values = [*values, "null"]
+def format_union(values: list[str]) -> str:
     return " | ".join(values)
 
 
-def render_single(annotation: Any, field_name: str, optional: bool) -> str:
+def render_single(annotation: Any, field_name: str) -> str:
     origin = get_origin(annotation)
 
     if origin is Literal:
-        values = [str(v) for v in get_args(annotation)]
-        return f"Single[{format_union(values, optional)}]"
+        values = [repr(v) if isinstance(v, str) else str(v) for v in get_args(annotation)]
+        return f"Single[{format_union(values)}]"
 
     if is_enum_type(annotation):
         values = enum_values(annotation)
-        return f"Single[{format_union(values, optional)}]"
+        return f"Single[{format_union(values)}]"
 
     if annotation is str:
-        values = ["string"]
-        return f"Single[{format_union(values, optional)}]"
+        return "Single[string]"
 
     if annotation is bool:
-        values = ["true", "false"]
-        return f"Single[{format_union(values, optional)}]"
+        return "Single[true | false]"
 
     if annotation is int:
         if field_name == "door_count":
             return "Single[integer 1..99]"
-        values = ["integer"]
-        return f"Single[{format_union(values, optional)}]"
+        return "Single[integer]"
 
     return "Single[unknown]"
 
 
 def render_type(annotation: Any, field_name: str) -> str:
-    annotation, optional = unwrap_optional(annotation)
+    annotation, _optional = unwrap_optional(annotation)
 
     if is_list_type(annotation):
         item_type = get_list_item_type(annotation)
-        item_type, item_optional = unwrap_optional(item_type)
+        item_type, _item_optional = unwrap_optional(item_type)
 
         if get_origin(item_type) is Literal:
-            values = [str(v) for v in get_args(item_type)]
-            return f"List[{format_union(values, item_optional)}]"
+            values = [repr(v) if isinstance(v, str) else str(v) for v in get_args(item_type)]
+            return f"List[{format_union(values)}]"
 
         if is_enum_type(item_type):
-            return f"List[{format_union(enum_values(item_type), item_optional)}]"
+            return f"List[{format_union(enum_values(item_type))}]"
 
         if item_type is str:
             return "List[string]"
@@ -100,7 +95,7 @@ def render_type(annotation: Any, field_name: str) -> str:
             return "List[true | false]"
         return "List[unknown]"
 
-    return render_single(annotation, field_name, optional)
+    return render_single(annotation, field_name)
 
 
 def render_model_block(title: str, model_cls: type[BaseModel]) -> list[str]:

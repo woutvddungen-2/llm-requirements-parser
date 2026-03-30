@@ -5,26 +5,14 @@
     "door_rules": [
       {
         "areas": ["overige binnendeuren"],
-        "reader_direction": null,
         "reader_types": ["CARD"],
-        "lock_type": null,
         "door_closer": "MECHANICAL",
-        "door_sensor": null,
-        "exit_device": null,
-        "emergency_button": null,
-        "anti_passback": null,
         "description": ""
       },
         {
         "areas": ["serverruimte"],
-        "reader_direction": null,
         "reader_types": ["FACE_RECOGNITION"],
-        "lock_type": null,
         "door_closer": "MECHANICAL",
-        "door_sensor": null,
-        "exit_device": null,
-        "emergency_button": null,
-        "anti_passback": null,
         "description": ""
       }
     ],

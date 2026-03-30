@@ -5,14 +5,7 @@
     "door_rules": [
       {
         "areas": ["voordeur"],
-        "reader_direction": null,
         "reader_types": ["CODE", "CARD", "BLUETOOTH"],
-        "lock_type": null,
-        "door_closer": null,
-        "door_sensor": null,
-        "exit_device": null,
-        "emergency_button": null,
-        "anti_passback": null,
         "description": ""
       }
     ],
