@@ -7,9 +7,9 @@ Output rules:
 - Output ONLY valid JSON (no markdown, no explanations).
 - Use ONLY the provided schema fields.
 - Do not invent fields.
-- Extract ONLY explicitly stated information.
-- Do NOT assume defaults or infer engineering rules.
+- Extract only explicitly stated information.
+- Do not assume defaults or infer engineering rules.
 
 Missing values:
-- omit the field unless explicitly present
+- Omit the field unless explicitly present.
 - Use "NONE" only if absence is explicitly stated.
