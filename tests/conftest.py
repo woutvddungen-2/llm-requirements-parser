@@ -7,6 +7,7 @@ Usage:
 """
 
 import pytest
+from pathlib import Path
 
 
 def pytest_addoption(parser):
@@ -58,17 +59,23 @@ def pytest_generate_tests(metafunc):
         metafunc.parametrize("use_rag", use_rag_values, ids=ids)
 
 
-@pytest.fixture
-def rag_context(request):
-    """Provide RAG context if available."""
-    from pathlib import Path
+@pytest.fixture(scope="session")
+def rag_knowledge_base():
+    """Load RAG knowledge base from rag_knowledge_base directory."""
+    from src.rag import load_knowledge_base
     
-    rag_kb_dir = Path("tests/rag_knowledge_base")
-    if not rag_kb_dir.exists():
+    kb_dir = Path("tests/rag_knowledge_base")  # ← Change from tests/cases
+    if not kb_dir.exists():
         return None
     
-    try:
-        from src.rag import RAGContext
-        return RAGContext(rag_kb_dir)
-    except ImportError:
-        return None
+    return load_knowledge_base(kb_dir)
+
+
+@pytest.fixture(scope="session")
+def rag_embeddings(rag_knowledge_base):
+    """Create embeddings for RAG knowledge base."""
+    if not rag_knowledge_base:
+        return {}
+    
+    from src.rag import create_embeddings
+    return create_embeddings(rag_knowledge_base)
