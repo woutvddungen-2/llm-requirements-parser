@@ -6,6 +6,7 @@
       {
         "areas": ["fietsenstallingen"],
         "reader_direction": "IN_ONLY",
+        "reader_types": ["CARD"],
         "lock_type": "ELECTRIC_STRIKE_PLATE",
         "description": ""
       },
