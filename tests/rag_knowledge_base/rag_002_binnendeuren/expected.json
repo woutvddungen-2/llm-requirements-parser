@@ -1,0 +1,16 @@
+{
+  "system_type": "ACCESS_CONTROL",
+  "version": "1.0",
+  "requirements": {
+    "door_rules": [
+      {
+        "areas": ["binnendeuren"],
+        "reader_types": ["CARD"],
+        "door_closer": "MECHANICAL",
+        "lock_type": "ELECTRIC_STRIKE_PLATE",
+        "description": "Alle binnendeuren krijgen een kaartlezer, deurdranger en sluitplaat"
+      }
+    ],
+    "controller_rules": []
+  }
+}

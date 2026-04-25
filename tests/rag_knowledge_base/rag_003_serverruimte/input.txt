@@ -1,0 +1,1 @@
+De serverruimte krijgt een gezichtscanner in plaats van een kaartlezer.

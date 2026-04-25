@@ -1,0 +1,34 @@
+{
+  "system_type": "ACCESS_CONTROL",
+  "version": "1.0",
+  "requirements": {
+    "door_rules": [
+      {
+        "areas": ["begane grond"],
+        "reader_types": ["CARD"],
+        "lock_type": "MAGNETIC_LOCK",
+        "description": "Deuren begane grond krijgen kaartlezers en magnetische sloten"
+      },
+      {
+        "areas": ["serverruimte"],
+        "reader_types": ["CARD"],
+        "lock_type": "MAGNETIC_LOCK",
+        "exit_device": "PUSH_BUTTON",
+        "description": "Serverruimte krijgt kaartlezer, magnetisch slot en noodknop"
+      },
+      {
+        "areas": ["eerste verdieping"],
+        "reader_types": ["CARD"],
+        "lock_type": "ELECTRIC_STRIKE_PLATE",
+        "description": "Deuren eerste verdieping krijgen kaartlezers en elektrische sluitplaten"
+      },
+      {
+        "areas": ["directiekantoor"],
+        "reader_types": ["CARD", "FACE_RECOGNITION"],
+        "lock_type": "ELECTRIC_STRIKE_PLATE",
+        "description": "Directie suite krijgt kaartlezer, gezichtscanner en elektrische sluitplaat"
+      }
+    ],
+    "controller_rules": []
+  }
+}

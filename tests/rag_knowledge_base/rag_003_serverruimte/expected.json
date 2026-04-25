@@ -1,0 +1,14 @@
+{
+  "system_type": "ACCESS_CONTROL",
+  "version": "1.0",
+  "requirements": {
+    "door_rules": [
+      {
+        "areas": ["serverruimte"],
+        "reader_types": ["FACE_RECOGNITION"],
+        "description": "Serverruimte krijgt een gezichtscanner in plaats van een kaartlezer"
+      }
+    ],
+    "controller_rules": []
+  }
+}

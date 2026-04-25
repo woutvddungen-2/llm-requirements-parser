@@ -1,0 +1,4 @@
+VIP kantoor krijgt alleen gezichtscanner als primaire lezer. 
+Backup toegang is met biometrisch vingerafdruk systeem. 
+Alle overige kantoren krijgen alleen kaartlezers. 
+De VIP parkeerplaats slagboom krijgt nummerplaatterkenning met bluetooth fallback

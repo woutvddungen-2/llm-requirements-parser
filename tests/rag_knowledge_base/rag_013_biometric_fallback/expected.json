@@ -1,0 +1,24 @@
+{
+  "system_type": "ACCESS_CONTROL",
+  "version": "1.0",
+  "requirements": {
+    "door_rules": [
+      {
+        "areas": ["vip kantoor"],
+        "reader_types": ["FACE_RECOGNITION", "FINGERPRINT"], 
+        "description": "VIP kantoor krijgt gezichtscanner, als backup een vingerafdrukscanner"
+      },
+      {
+        "areas": ["overige kantoren"],
+        "reader_types": ["CARD"],
+        "description": "Overige kantoren krijgen kaartlezers"
+      },
+      {
+        "areas": ["vip parkeerplaats slagboom"],
+        "reader_types": ["LICENSEPLATE_CAMERA", "BLUETOOTH"],
+        "description": "VIP parkeerplaats barrier met nummerplaatterkenning en bluetooth fallback"
+      }
+    ],
+    "controller_rules": []
+  }
+}

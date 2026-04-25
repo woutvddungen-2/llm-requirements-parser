@@ -1,0 +1,15 @@
+{
+  "system_type": "ACCESS_CONTROL",
+  "version": "1.0",
+  "requirements": {
+    "door_rules": [
+      {
+        "areas": ["slagboom"],
+        "reader_types": ["LICENSEPLATE_CAMERA"],
+        "exit_device": "GROUND_LOOP",
+        "description": "Slagboom wordt geopend met kentekencamera en uitrijlus"
+      }
+    ],
+    "controller_rules": []
+  }
+}

@@ -1,0 +1,4 @@
+De beveiligde ruimte en geldkamer moeten beveiligd worden met paslezer en pincode. 
+De geldkamer moet anti-passback hebben. 
+Laboratorium deuren krijgen gezichtscanner en iris scanner. 
+Alle ruimtes moeten magneetcontacten hebben

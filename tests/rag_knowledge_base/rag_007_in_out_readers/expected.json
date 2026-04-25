@@ -1,0 +1,21 @@
+{
+  "system_type": "ACCESS_CONTROL",
+  "version": "1.0",
+  "requirements": {
+    "door_rules": [
+      {
+        "areas": ["buitendeuren"],
+        "reader_types": ["CARD"],
+        "reader_direction": "IN_ONLY",
+        "description": "Buitendeuren krijgen IN kaartlezers"
+      },
+      {
+        "areas": ["voordeur"],
+        "reader_types": ["CARD"],
+        "reader_direction": "IN_OUT",
+        "description": "Voordeur krijgt IN en UIT kaartlezer"
+      }
+    ],
+    "controller_rules": []
+  }
+}

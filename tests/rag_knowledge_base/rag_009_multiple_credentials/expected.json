@@ -1,0 +1,19 @@
+{
+  "system_type": "ACCESS_CONTROL",
+  "version": "1.0",
+  "requirements": {
+    "door_rules": [
+      {
+        "areas": ["zijdeur", "voordeur", "tuindeur"],
+        "reader_types": ["IRIS_SCAN", "CARD"],
+        "description": "Zijdeur, voordeur en tuindeur krijgen irisscanner en kaartlezer"
+      },
+      {
+        "areas": ["slaapkamerdeur", "poolhouse"],
+        "reader_types": ["FINGERPRINT"],
+        "description": "Slaapkamerdeur en poolhouse krijgen vingerafdruk lezer"
+      }
+    ],
+    "controller_rules": []
+  }
+}

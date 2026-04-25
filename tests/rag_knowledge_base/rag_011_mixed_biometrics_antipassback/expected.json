@@ -1,0 +1,28 @@
+{
+  "system_type": "ACCESS_CONTROL",
+  "version": "1.0",
+  "requirements": {
+    "door_rules": [
+      {
+        "areas": ["beveiligde ruimte"],
+        "reader_types": ["CARD", "CODE"],
+        "door_sensor": true,
+        "description": "Beveiligde ruimte krijgt paslezer, pincode en deurvoelingssensor"
+      },
+      {
+        "areas": ["geldkamer"],
+        "reader_types": ["CARD", "CODE"],
+        "anti_passback": true,
+        "door_sensor": true,
+        "description": "Geldkamer krijgt paslezer, pincode, anti-passback en deurvoelingssensor"
+      },
+      {
+        "areas": ["laboratorium"],
+        "reader_types": ["FACE_RECOGNITION", "IRIS_SCAN"],
+        "door_sensor": true,
+        "description": "Laboratorium krijgt gezichtscanner, iris scanner en deurvoelingssensor"
+      }
+    ],
+    "controller_rules": []
+  }
+}

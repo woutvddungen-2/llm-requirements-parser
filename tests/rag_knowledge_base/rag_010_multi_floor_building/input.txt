@@ -1,0 +1,4 @@
+Alle deuren op de begane grond krijgen kaartlezers en magnetische sloten. 
+De ingang van de serverruimte krijgt extra een noodknop. 
+Alle deuren op de eerste verdieping krijgen dezelfde kaartlezers als begane grond, maar met elektrische sluitplaten in plaats van magnetische sloten. 
+De directiekantoor op eerste verdieping krijgt daarbovenop een gezichtscanner

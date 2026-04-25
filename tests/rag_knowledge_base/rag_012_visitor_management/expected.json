@@ -1,0 +1,29 @@
+{
+  "system_type": "ACCESS_CONTROL",
+  "version": "1.0",
+  "requirements": {
+    "door_rules": [
+      {
+        "areas": ["bezoekersingang"],
+        "reader_types": ["CARD", "CODE"],
+        "description": "Bezoekersingang krijgt kaartlezer en codeleezer"
+      },
+      {
+        "areas": ["gastdeuren"],
+        "reader_types": ["CODE"],
+        "description": "Gastdeuren krijgen alleen codeleezer"
+      },
+      {
+        "areas": ["receptie"],
+        "reader_types": ["CARD", "CODE"],
+        "description": "Receptie krijgt kaartlezer en codeleezer"
+      },
+      {
+        "areas": ["externe_deuren"],
+        "exit_device": "GROUND_LOOP",
+        "description": "Externe deuren krijgen uitrijlus voor noodsituaties"
+      }
+    ],
+    "controller_rules": []
+  }
+}

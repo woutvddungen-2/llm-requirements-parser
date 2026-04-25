@@ -1,0 +1,19 @@
+{
+  "system_type": "ACCESS_CONTROL",
+  "version": "1.0",
+  "requirements": {
+    "door_rules": [
+      {
+        "areas": ["kantoren"],
+        "reader_types": ["CARD","CODE"],
+        "description": "kantoren krijgen een kaarlezer"
+      },
+      {
+        "areas": ["directiekantoren"],
+        "reader_types": ["CODE"],
+        "description": "Directiekantoren krijgen ook een pincodelezer"
+      }
+    ],
+    "controller_rules": []
+  }
+}

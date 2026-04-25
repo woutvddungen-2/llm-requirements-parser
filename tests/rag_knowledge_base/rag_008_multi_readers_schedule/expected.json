@@ -1,0 +1,30 @@
+{
+  "system_type": "ACCESS_CONTROL",
+  "version": "1.0",
+  "requirements": {
+    "door_rules": [
+      {
+        "areas": ["buitendeuren"],
+        "reader_types": ["CARD"],
+        "lock_type": "MOTORIZED_LOCK",
+        "door_closer": "MECHANICAL",
+        "description": "Buitendeuren krijgen kaartlezers, motorsloten en deurdrangers"
+      },
+      {
+        "areas": ["hoofdentree schuifdeur"],
+        "reader_types": ["CARD", "BLUETOOTH"],
+        "lock_type": "MOTORIZED_LOCK",
+        "door_closer": "MECHANICAL",
+        "description": "Hoofdentree schuifdeur krijgt kaartlezer, bluetooth lezer, motorslot en deurdranger"
+      },
+      {
+        "areas": ["personeelsentree"],
+        "reader_types": ["CARD"],
+        "lock_type": "MOTORIZED_LOCK",
+        "door_closer": "MECHANICAL",
+        "description": "Personeelsentree voor toegang buiten kantoortijden"
+      }
+    ],
+    "controller_rules": []
+  }
+}
