@@ -27,12 +27,43 @@ def discover_cases() -> list[Path]:
 def test_extraction_matches_expected(case_dir: Path, model: str) -> None:
     input_path = case_dir / "input.txt"
     expected_path = case_dir / "expected.json"
-
     requirement_text = load_text(input_path)
     expected = load_json(expected_path)
+    run_id = get_run_id()
 
     llm_result = extract_requirements_json(requirement_text, model=model)
-    validated = validate_output(llm_result.text)
+  
+    try:
+        validated = validate_output(llm_result.text)
+    except Exception as ex:
+        entry = {
+            "timestamp": datetime.now(UTC).isoformat(),
+            "run_id": run_id,
+            "case": case_dir.name,
+            "model": model,
+            "passed": False,
+            "input": requirement_text,
+            "expected": expected,
+            "actual": None,
+            "raw_output": llm_result.text,
+            "diff": None,
+            "started_at": llm_result.started_at,
+            "completed_at": llm_result.completed_at,
+            "duration_ms": llm_result.duration_ms,
+            "input_tokens": llm_result.input_tokens,
+            "output_tokens": llm_result.output_tokens,
+            "error": str(ex),
+        }
+        log_result(entry)
+        log_failure(entry)
+        pytest.fail(
+            f"\nRUN_ID: {run_id}"
+            f"\nMODEL: {model}"
+            f"\nCASE: {case_dir.name}"
+            f"\nVALIDATION ERROR: {ex}"
+            f"\n\nRAW OUTPUT:\n{llm_result.text}",
+            pytrace=False,
+        )
 
     actual = validated.model_dump(exclude_none=True, exclude_unset=True, exclude_defaults=False)
 
@@ -44,7 +75,6 @@ def test_extraction_matches_expected(case_dir: Path, model: str) -> None:
 
     diff = focused_diff(expected_pretty, actual_pretty, context=2)
     passed = actual_normalized == expected_normalized
-    run_id = get_run_id()
 
     entry = {
         "timestamp": datetime.now(UTC).isoformat(),

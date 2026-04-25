@@ -1,6 +1,7 @@
 import json
 import difflib
 from pathlib import Path
+import re
 from typing import Any
 
 from src.schema_access_control import AccessControlSchema
@@ -15,7 +16,8 @@ def load_json(path: Path) -> dict[str, Any]:
 
 
 def validate_output(raw_text: str) -> AccessControlSchema:
-    return AccessControlSchema.model_validate_json(raw_text)
+    cleaned = re.sub(r"^```(?:json)?\s*|\s*`+$", "", raw_text.strip())
+    return AccessControlSchema.model_validate_json(cleaned)
 
 
 def normalize_for_comparison(data: Any) -> Any:

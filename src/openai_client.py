@@ -20,8 +20,6 @@ def openai_generate_text(system_prompt: str, user_prompt: str, model_name: str, 
 
     client = OpenAI(api_key=api_key)
 
-    started = datetime.now(UTC)
-
     try:
         response = client.responses.create(
             model=model_name,
@@ -41,18 +39,12 @@ def openai_generate_text(system_prompt: str, user_prompt: str, model_name: str, 
     except RateLimitError as exc:
         raise RuntimeError("OpenAI rate limit / quota error.") from exc
 
-    completed = datetime.now(UTC)
-    duration_ms = int((completed - started).total_seconds() * 1000)
-
     usage = getattr(response, "usage", None)
 
     return LLMResult(
         text=response.output_text.strip(),
         vendor="openai",
         model_name=model_name,
-        started_at=started.isoformat(),
-        completed_at=completed.isoformat(),
-        duration_ms=duration_ms,
         input_tokens=getattr(usage, "input_tokens", None) if usage else None,
         output_tokens=getattr(usage, "output_tokens", None) if usage else None,
     )

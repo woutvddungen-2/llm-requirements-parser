@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from datetime import datetime
 from typing import Optional
 
 
@@ -16,9 +17,9 @@ class LLMResult:
     model_name: str
 
     # Timing
-    started_at: str
-    completed_at: str
-    duration_ms: int
+    started_at: datetime | None = None
+    completed_at: datetime | None = None
+    duration_ms: int | None = None
 
     # Token usage (if available from provider)
     input_tokens: Optional[int] = None

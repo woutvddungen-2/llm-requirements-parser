@@ -61,3 +61,9 @@ Output:
     "controller_rules": []
   }
 }
+
+CRITICAL OUTPUT RULE:
+Output RAW JSON only.
+No ```json, no ```, no prose, no comments.
+The very first character of your response must be "{".
+The very last character must be "}".

@@ -42,6 +42,7 @@ noodknop → STANDALONE
 gekoppeld aan inbraak → INTRUSION
 
 Special case:
+- ALWAYS include "controller_rules": [] in the output, even when empty.
 - uitrijlus -> exit_device = GROUND_LOOP
 - never map "uitrijlus" to reader_direction
 
