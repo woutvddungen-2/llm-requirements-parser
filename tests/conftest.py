@@ -2,8 +2,8 @@
 
 Usage:
     pytest tests/ --models gemini:gemini-1.5-pro
-    pytest tests/ --models gemini:gemini-1.5-pro,openai:gpt-4-turbo --use-rag both -v
-    pytest tests/ --models gemini --use-rag both --count 3 -n auto -v
+    pytest tests/ --models gemini:gemini-1.5-pro,openai:gpt-4-turbo --use-few-shot both -v
+    pytest tests/ --models gemini --use-few-shot both --count 3 -n auto -v
 """
 
 import pytest
@@ -19,11 +19,11 @@ def pytest_addoption(parser):
         help="Comma-separated list of models (format: vendor:model_name)",
     )
     parser.addoption(
-        "--use-rag",
+        "--use-few-shot",
         action="store",
         default="standard",
-        choices=["standard", "rag", "both"],
-        help="Test methods: 'standard' (no RAG), 'rag' (with RAG), 'both' (default: standard)",
+        choices=["standard", "few-shot", "both"],
+        help="Test methods: 'standard' (no few-shot), 'few-shot' (with few-shot examples), 'both' (default: standard)",
     )
 
 
@@ -42,29 +42,29 @@ def pytest_generate_tests(metafunc):
             raise ValueError("No valid models specified")
         metafunc.parametrize("model", models, ids=models)
     
-    # Parametrize 'use_rag'
-    if "use_rag" in metafunc.fixturenames:
-        rag_option = metafunc.config.getoption("use_rag")
+    # Parametrize 'use_few_shot'
+    if "use_few_shot" in metafunc.fixturenames:
+        few_shot_option = metafunc.config.getoption("use_few_shot")
         
-        if rag_option == "standard":
-            use_rag_values = [False]
-            ids = ["no_rag"]
-        elif rag_option == "rag":
-            use_rag_values = [True]
-            ids = ["with_rag"]
-        elif rag_option == "both":
-            use_rag_values = [False, True]
-            ids = ["no_rag", "with_rag"]
+        if few_shot_option == "standard":
+            use_few_shot_values = [False]
+            ids = ["no_few_shot"]
+        elif few_shot_option == "few-shot":
+            use_few_shot_values = [True]
+            ids = ["with_few_shot"]
+        elif few_shot_option == "both":
+            use_few_shot_values = [False, True]
+            ids = ["no_few_shot", "with_few_shot"]
         
-        metafunc.parametrize("use_rag", use_rag_values, ids=ids)
+        metafunc.parametrize("use_few_shot", use_few_shot_values, ids=ids)
 
 
 @pytest.fixture(scope="session")
-def rag_knowledge_base():
-    """Load RAG knowledge base from rag_knowledge_base directory."""
-    from src.rag import load_knowledge_base
+def few_shot_examples():
+    """Load few-shot example cases from knowledge base directory."""
+    from src.few_shot import load_knowledge_base
     
-    kb_dir = Path("tests/rag_knowledge_base")  # ← Change from tests/cases
+    kb_dir = Path("tests/knowledge_base")
     if not kb_dir.exists():
         return None
     
@@ -72,10 +72,23 @@ def rag_knowledge_base():
 
 
 @pytest.fixture(scope="session")
-def rag_embeddings(rag_knowledge_base):
-    """Create embeddings for RAG knowledge base."""
-    if not rag_knowledge_base:
+def few_shot_embeddings(few_shot_examples):
+    """Create embeddings for few-shot example cases."""
+    if not few_shot_examples:
         return {}
     
-    from src.rag import create_embeddings
-    return create_embeddings(rag_knowledge_base)
+    from src.few_shot import create_embeddings
+    return create_embeddings(few_shot_examples)
+
+
+# Backward compatibility aliases
+@pytest.fixture(scope="session")
+def rag_knowledge_base(few_shot_examples):
+    """Deprecated: Use few_shot_examples instead."""
+    return few_shot_examples
+
+
+@pytest.fixture(scope="session")
+def rag_embeddings(few_shot_embeddings):
+    """Deprecated: Use few_shot_embeddings instead."""
+    return few_shot_embeddings

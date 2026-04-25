@@ -1,4 +1,9 @@
-"""RAG (Retrieval-Augmented Generation) utilities for requirement extraction."""
+"""Few-shot prompting utilities for requirement extraction.
+
+Provides functionality to load example cases and build context strings
+for few-shot learning, where the LLM is given similar past examples
+to improve extraction accuracy.
+"""
 
 import json
 from pathlib import Path
@@ -26,10 +31,10 @@ def _load_embedding_model():
 
 def load_knowledge_base(knowledge_base_dir: Path) -> dict:
     """
-    Load all test cases from knowledge base directory.
+    Load all example cases from knowledge base directory.
     
     Args:
-        knowledge_base_dir: Path to directory with test cases (input.txt + expected.json)
+        knowledge_base_dir: Path to directory with example cases (input.txt + expected.json)
     
     Returns:
         Dictionary mapping case_name to {spec, expected}
@@ -62,7 +67,7 @@ def create_embeddings(knowledge_base: dict) -> dict:
     Create embeddings for all specs in knowledge base.
     
     Args:
-        knowledge_base: Dictionary of cases
+        knowledge_base: Dictionary of example cases
     
     Returns:
         Dictionary mapping case_name to embedding vector
@@ -133,13 +138,13 @@ def find_similar(
     k: int = 2
 ) -> List[Tuple[str, float]]:
     """
-    Find k most similar specs from knowledge base.
+    Find k most similar example specs from knowledge base.
     
     Uses semantic similarity if embeddings available, falls back to keyword matching.
     
     Args:
-        query_spec: Specification to find similarities for
-        knowledge_base: Dictionary of cases
+        query_spec: Specification to find similar examples for
+        knowledge_base: Dictionary of example cases
         embeddings: Precomputed embeddings (or empty dict for keyword-only)
         k: Number of similar cases to return
     
@@ -157,14 +162,14 @@ def build_context(
     knowledge_base: dict
 ) -> str:
     """
-    Build RAG context string from similar cases.
+    Build few-shot context string from similar example cases.
     
     Args:
         similar_cases: List of (case_name, similarity_score) tuples
-        knowledge_base: Dictionary of cases
+        knowledge_base: Dictionary of example cases
     
     Returns:
-        Context string with examples to include in prompt
+        Context string with examples to include in prompt for few-shot learning
     """
     if not similar_cases:
         return ""

@@ -30,20 +30,20 @@ PROMPT_FILES_FULL = [
 ]
 
 
-def build_system_prompt(use_rag: bool = False) -> str:
+def build_system_prompt(use_few_shot: bool = False) -> str:
     """
-    Build system prompt based on whether RAG is used.
+    Build system prompt based on whether few-shot examples are used.
     
-    With RAG: Minimal system prompt (instructions + schema + terminology)
-    Without RAG: Full system prompt (includes examples and rules)
+    With few-shot: Minimal system prompt (instructions + schema + terminology)
+    Without few-shot: Full system prompt (includes examples and rules)
     
     Args:
-        use_rag: If True, use minimal prompt. If False, use full prompt.
+        use_few_shot: If True, use minimal prompt. If False, use full prompt.
     
     Returns:
         System prompt string
     """
-    if use_rag:
+    if use_few_shot:
         return load_system_prompt(PROMPT_FILES_MINIMAL)
     else:
         return load_system_prompt(PROMPT_FILES_FULL)
@@ -67,7 +67,7 @@ Requirement text:
 """
 
 
-def build_rag_context_prompt(
+def build_few_shot_context_prompt(
     requirement_text: str,
     rag_context: str,
     language: str = "Dutch"
@@ -103,7 +103,7 @@ def extract_requirements_json(
     
     This is the main entry point. It orchestrates:
     1. System prompt selection (minimal vs full)
-    2. User prompt building (with or without RAG)
+    2. User prompt building (with or without few-shot examples)
     3. LLM call
     
     Args:
@@ -111,8 +111,7 @@ def extract_requirements_json(
         model: LLM model (vendor:model_name format)
         max_tokens: Maximum tokens for generation
         language: Specification language (default: Dutch)
-        rag_context: Optional RAG context with similar examples
-        use_rag: If True, uses minimal system prompt for RAG mode
+        rag_context: Optional few-shot context with similar examples
     
     Returns:
         LLMResult with extraction and metadata
@@ -124,11 +123,11 @@ def extract_requirements_json(
         raise ValueError("Model name must be provided and cannot be empty.")
     
     # Step 1: Build system prompt
-    system_prompt = build_system_prompt(use_rag=(rag_context is not None))
+    system_prompt = build_system_prompt(use_few_shot=(rag_context is not None))
     
     # Step 2: Build user prompt
     if rag_context:
-        user_prompt = build_rag_context_prompt(
+        user_prompt = build_few_shot_context_prompt(
             requirement_text,
             rag_context,
             language=language

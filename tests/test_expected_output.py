@@ -1,11 +1,11 @@
-"""Test extraction accuracy with optional RAG."""
+"""Test extraction accuracy with optional few-shot prompting."""
 
 from datetime import UTC, datetime
 import json
 from pathlib import Path
 import pytest
 from src.parser import extract_requirements_json
-from src.rag import find_similar, build_context
+from src.few_shot import find_similar, build_context
 from tests.helpers import (
     load_text,
     load_json,
@@ -33,22 +33,22 @@ def discover_cases() -> list[Path]:
 def test_extraction_matches_expected(
     case_dir: Path,
     model: str,
-    use_rag,
-    rag_knowledge_base,
-    rag_embeddings,
+    use_few_shot,
+    few_shot_examples,
+    few_shot_embeddings,
 ) -> None:
-    """Test extraction accuracy with optional RAG.
+    """Test extraction accuracy with optional few-shot prompting.
     
     Parameters:
         case_dir: Test case directory
         model: LLM model to use (vendor:model_name)
-        use_rag: Whether to use RAG context
-        rag_knowledge_base: RAG knowledge base fixture
-        rag_embeddings: RAG embeddings fixture
+        use_few_shot: Whether to use few-shot examples
+        few_shot_examples: Few-shot example cases fixture
+        few_shot_embeddings: Few-shot embeddings fixture
     
     Usage:
-        pytest tests/ --models gemini --use-rag both -v
-        pytest tests/ --models gemini,openai --use-rag both --count 3 -n auto -v
+        pytest tests/ --models gemini --use-few-shot both -v
+        pytest tests/ --models gemini,openai --use-few-shot both --count 3 -n auto -v
     """
     input_path = case_dir / "input.txt"
     expected_path = case_dir / "expected.json"
@@ -56,23 +56,23 @@ def test_extraction_matches_expected(
     expected = load_json(expected_path)
     run_id = get_run_id()
     
-    # Build RAG context if requested
-    rag_context_str = None
+    # Build few-shot context if requested
+    few_shot_context_str = None
     similar_cases = []
-    if use_rag and rag_knowledge_base:
+    if use_few_shot and few_shot_examples:
         similar_cases = find_similar(
             requirement_text,
-            rag_knowledge_base,
-            rag_embeddings or {},
+            few_shot_examples,
+            few_shot_embeddings or {},
             k=2
         )
-        rag_context_str = build_context(similar_cases, rag_knowledge_base)
+        few_shot_context_str = build_context(similar_cases, few_shot_examples)
     
     # Run extraction
     llm_result = extract_requirements_json(
         requirement_text,
         model=model,
-        rag_context=rag_context_str,
+        rag_context=few_shot_context_str,
     )
 
     # Validate JSON
@@ -84,7 +84,7 @@ def test_extraction_matches_expected(
             "run_id": run_id,
             "case": case_dir.name,
             "model": model,
-            "use_rag": use_rag,
+            "use_few_shot": use_few_shot,
             "passed": False,
             "input": requirement_text,
             "expected": expected,
@@ -102,7 +102,7 @@ def test_extraction_matches_expected(
         log_result(entry)
         log_failure(entry)
         
-        rag_str = " (with RAG)" if use_rag else ""
+        rag_str = " (with few-shot)" if use_few_shot else ""
         pytest.fail(
             f"\nRUN_ID: {run_id}"
             f"\nMODEL: {model}{rag_str}"
@@ -129,7 +129,7 @@ def test_extraction_matches_expected(
         "run_id": run_id,
         "case": case_dir.name,
         "model": model,
-        "use_rag": use_rag,
+        "use_few_shot": use_few_shot,
         "passed": passed,
         "input": requirement_text,
         "expected": expected,
@@ -148,7 +148,7 @@ def test_extraction_matches_expected(
     if not passed:
         log_failure(entry)
         
-        rag_str = " (with RAG)" if use_rag else ""
+        rag_str = " (with few-shot)" if use_few_shot else ""
         pytest.fail(
             f"\nRUN_ID: {run_id}"
             f"\nMODEL: {model}{rag_str}"
