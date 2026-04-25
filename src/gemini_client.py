@@ -1,7 +1,7 @@
 import os
 from datetime import UTC, datetime
 from dotenv import load_dotenv
-from google import genai
+import google.genai as genai
 from google.genai import types
 from src.llm_types import LLMResult
 
