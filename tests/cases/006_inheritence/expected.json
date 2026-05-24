@@ -4,14 +4,32 @@
   "requirements": {
     "door_rules": [
       {
-        "areas": ["overige binnendeuren"],
+        "areas": ["Entree"],
+        "door_id": "door_04",
         "reader_direction": "IN_ONLY",
         "reader_types": ["CARD"],
         "door_closer": "MECHANICAL",
         "description": ""
       },
-        {
-        "areas": ["directiekantoren"],
+      {
+        "areas": ["Kantine"],
+        "door_id": "door_05",
+        "reader_direction": "IN_ONLY",
+        "reader_types": ["CARD"],
+        "door_closer": "MECHANICAL",
+        "description": ""
+      },
+      {
+        "areas": ["Vergaderruimte"],
+        "door_id": "door_07",
+        "reader_direction": "IN_ONLY",
+        "reader_types": ["CARD"],
+        "door_closer": "MECHANICAL",
+        "description": ""
+      },
+      {
+        "areas": ["Directiekantoor"],
+        "door_id": "door_08",
         "reader_direction": "IN_ONLY",
         "reader_types": ["CARD", "CODE"],
         "door_closer": "MECHANICAL",

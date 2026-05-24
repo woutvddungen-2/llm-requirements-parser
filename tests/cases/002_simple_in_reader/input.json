@@ -1,0 +1,21 @@
+{
+  "requirement_text": "De deur van de serverruimte krijgt een inlezer met pas.",
+  "available_spaces": [
+    "serverruimte",
+    "Entree"
+  ],
+  "available_doors": [
+    {
+      "door_id": "door_12",
+      "space_a": "serverruimte",
+      "space_b": "hal",
+      "is_external": false
+    },
+    {
+      "door_id": "door_15",
+      "space_a": "OUTSIDE",
+      "space_b": "Entree",
+      "is_external": true
+    }
+  ]
+}

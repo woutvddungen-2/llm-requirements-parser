@@ -1,0 +1,21 @@
+{
+  "requirement_text": "De deur van Entree naar 0.2 Hal krijgt een kaartlezer en sluitplaat.",
+  "available_spaces": [
+    "0.2 Hal",
+    "Entree"
+  ],
+  "available_doors": [
+    {
+      "door_id": "door_12",
+      "space_a": "0.2 Hal",
+      "space_b": "Entree",
+      "is_external": false
+    },
+    {
+      "door_id": "door_15",
+      "space_a": "OUTSIDE",
+      "space_b": "Entree",
+      "is_external": true
+    }
+  ]
+}

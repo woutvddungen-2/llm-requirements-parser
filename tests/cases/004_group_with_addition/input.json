@@ -1,0 +1,56 @@
+{
+  "requirement_text": "Alle deuren van serverruimten en directiekantoren krijgen een inlezer met pas. \nDirectiekantoren moeten ook met pincode geopend kunnen worden.",
+  "available_spaces": [
+    "Serverruimte",
+    "Kantine",
+    "Kantoor",
+    "Vergaderruimte",
+    "Directiekantoor",
+    "Hal",
+    "Entree"
+  ],
+  "available_doors": [
+    {
+      "door_id": "door_04",
+      "space_a": "Entree",
+      "space_b": "Hal",
+      "is_external": false
+    },
+    {
+      "door_id": "door_05",
+      "space_a": "Hal",
+      "space_b": "Kantine",
+      "is_external": false
+    },
+    {
+      "door_id": "door_06",
+      "space_a": "Hal",
+      "space_b": "Kantoor",
+      "is_external": false
+    },
+    {
+      "door_id": "door_07",
+      "space_a": "Hal",
+      "space_b": "Vergaderruimte",
+      "is_external": false
+    },
+    {
+      "door_id": "door_08",
+      "space_a": "Hal",
+      "space_b": "Directiekantoor",
+      "is_external": false
+    },
+    {
+      "door_id": "door_09",
+      "space_a": "Hal",
+      "space_b": "Serverruimte",
+      "is_external": false
+    },
+    {
+      "door_id": "door_12",
+      "space_a": "OUTSIDE",
+      "space_b": "Entree",
+      "is_external": true
+    }
+  ]
+}

@@ -6,6 +6,7 @@
     "door_rules": [
       {
         "areas": ["serverruimte"],
+        "door_id": "door_12",
         "reader_types": ["CARD"],
         "description": ""
       }

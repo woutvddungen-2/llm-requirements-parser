@@ -5,6 +5,7 @@
     "door_rules": [
       {
         "areas": ["serverruimte"],
+        "door_id": "door_09",
         "reader_types": ["IRIS_SCAN", "CODE"],
         "description": ""
       }

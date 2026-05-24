@@ -1,0 +1,35 @@
+{
+  "requirement_text": "De entreedeur krijgt een paslezer, pincode en bluetooth.",
+  "available_spaces": [
+    "Kantine",
+    "Kantoor",
+    "Hal",
+    "Entree"
+  ],
+  "available_doors": [
+    {
+      "door_id": "door_04",
+      "space_a": "Entree",
+      "space_b": "Hal",
+      "is_external": false
+    },
+    {
+      "door_id": "door_05",
+      "space_a": "Hal",
+      "space_b": "Kantine",
+      "is_external": false
+    },
+    {
+      "door_id": "door_06",
+      "space_a": "Hal",
+      "space_b": "Kantoor",
+      "is_external": false
+    },
+    {
+      "door_id": "door_12",
+      "space_a": "OUTSIDE",
+      "space_b": "Entree",
+      "is_external": true
+    }
+  ]
+}

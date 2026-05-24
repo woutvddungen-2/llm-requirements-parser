@@ -1,0 +1,17 @@
+{
+  "system_type": "ACCESS_CONTROL",
+  "version": "1.0",
+  "requirements": {
+    "door_rules": [
+      {
+        "areas": ["0.2 Hal"],
+        "door_id": "door_12",
+        "connects_to_areas": ["Entree"],
+        "reader_types": ["CARD"],
+        "lock_type": "ELECTRIC_STRIKE_PLATE",
+        "description": "De deur van Entree naar 0.2 Hal krijgt een kaartlezer en sluitplaat"
+      }
+    ],
+    "controller_rules": []
+  }
+}

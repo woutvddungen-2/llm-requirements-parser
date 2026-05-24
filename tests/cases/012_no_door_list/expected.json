@@ -4,9 +4,10 @@
   "requirements": {
     "door_rules": [
       {
-        "areas": ["entree"],
-        "door_id": "door_12",
-        "reader_types": ["CODE", "CARD", "BLUETOOTH"],
+        "areas": ["Serverruimte"],
+        "connects_to_areas": ["Hal"],
+        "reader_direction": "IN_ONLY",
+        "reader_types": ["CARD"],
         "description": ""
       }
     ],

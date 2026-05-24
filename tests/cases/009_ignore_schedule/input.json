@@ -1,0 +1,35 @@
+{
+  "requirement_text": "De serverruimte krijgt een irisscanner en mag alleen tussen 9 en 5 via pincode geopend worden.",
+  "available_spaces": [
+    "Serverruimte",
+    "Kantine",
+    "Hal",
+    "Entree"
+  ],
+  "available_doors": [
+    {
+      "door_id": "door_04",
+      "space_a": "Entree",
+      "space_b": "Hal",
+      "is_external": false
+    },
+    {
+      "door_id": "door_05",
+      "space_a": "Hal",
+      "space_b": "Kantine",
+      "is_external": false
+    },
+    {
+      "door_id": "door_09",
+      "space_a": "Hal",
+      "space_b": "Serverruimte",
+      "is_external": false
+    },
+    {
+      "door_id": "door_12",
+      "space_a": "OUTSIDE",
+      "space_b": "Entree",
+      "is_external": true
+    }
+  ]
+}

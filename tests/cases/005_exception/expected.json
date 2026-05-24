@@ -4,14 +4,28 @@
   "requirements": {
     "door_rules": [
       {
-        "areas": ["overige binnendeuren"],
+        "areas": ["Entree"],
+        "door_id": "door_04",
         "lock_type": "ELECTRIC_STRIKE_PLATE",
-        "description": "Serverruimte krijgt geen deurdranger"
+        "description": ""
       },
-        {
+      {
+        "areas": ["Kantine"],
+        "door_id": "door_05",
+        "lock_type": "ELECTRIC_STRIKE_PLATE",
+        "description": ""
+      },
+      {
+        "areas": ["Kantoor"],
+        "door_id": "door_06",
+        "lock_type": "ELECTRIC_STRIKE_PLATE",
+        "description": ""
+      },
+      {
         "areas": ["serverruimte"],
+        "door_id": "door_09",
         "lock_type": "MOTORIZED_LOCK",
-        "description": "Serverruimte krijgt geen deurdranger"
+        "description": ""
       }
     ],
     "controller_rules": []

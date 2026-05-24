@@ -4,13 +4,29 @@
   "requirements": {
     "door_rules": [
       {
-        "areas": ["overige binnendeuren"],
+        "areas": ["Entree"],
+        "door_id": "door_04",
         "reader_types": ["CARD"],
         "door_closer": "MECHANICAL",
         "description": ""
       },
-        {
-        "areas": ["serverruimte"],
+      {
+        "areas": ["Kantine"],
+        "door_id": "door_05",
+        "reader_types": ["CARD"],
+        "door_closer": "MECHANICAL",
+        "description": ""
+      },
+      {
+        "areas": ["Kantoor"],
+        "door_id": "door_06",
+        "reader_types": ["CARD"],
+        "door_closer": "MECHANICAL",
+        "description": ""
+      },
+      {
+        "areas": ["Serverruimte"],
+        "door_id": "door_09",
         "reader_types": ["FACE_RECOGNITION"],
         "door_closer": "MECHANICAL",
         "description": ""

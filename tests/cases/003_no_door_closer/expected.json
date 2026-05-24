@@ -5,6 +5,7 @@
     "door_rules": [
       {
         "areas": ["serverruimte"],
+        "door_id": "door_12",
         "door_closer": "NONE",
         "description": "Serverruimte krijgt geen deurdranger"
       }

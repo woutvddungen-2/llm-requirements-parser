@@ -1,0 +1,35 @@
+{
+  "requirement_text": "alle fietsenstallingen dienen voorzien te worden van IN kaartlezers en sluitplaten\nde slagboom van de parkeergarage dient geopend te worden d.m.v. kentekencamera en uitrijlus",
+  "available_spaces": [
+    "-1.01 Fietsenstalling 1-10",
+    "-1.02 Fietsenstalling 11-20",
+    "Garage",
+    "Trappenhal"
+  ],
+  "available_doors": [
+    {
+      "door_id": "door_04",
+      "space_a": "-1.01 Fietsenstalling 1-10",
+      "space_b": "Garage",
+      "is_external": false
+    },
+    {
+      "door_id": "door_05",
+      "space_a": "-1.02 Fietsenstalling 11-20",
+      "space_b": "Garage",
+      "is_external": false
+    },
+    {
+      "door_id": "door_06",
+      "space_a": "Trappenhal",
+      "space_b": "Garage",
+      "is_external": false
+    },
+    {
+      "door_id": "door_07",
+      "space_a": "OUTSIDE",
+      "space_b": "Garage",
+      "is_external": true
+    }
+  ]
+}

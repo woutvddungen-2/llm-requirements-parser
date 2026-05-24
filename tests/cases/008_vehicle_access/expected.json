@@ -4,16 +4,26 @@
   "requirements": {
     "door_rules": [
       {
-        "areas": ["fietsenstallingen"],
+        "areas": ["-1.01 FIETSENSTALLING 1-10"],
+        "door_id": "door_04",
         "reader_direction": "IN_ONLY",
         "reader_types": ["CARD"],
         "lock_type": "ELECTRIC_STRIKE_PLATE",
         "description": ""
       },
-        {
-        "areas": ["slagboom"],
-        "reader_types": ["LICENSEPLATE_CAMERA"],
+      {
+        "areas": ["-1.02 FIETSENSTALLING 11-20"],
+        "door_id": "door_05",
+        "reader_types": ["CARD"],
+        "lock_type": "ELECTRIC_STRIKE_PLATE",
+        "reader_direction": "IN_ONLY",        
+        "description": ""
+      },
+      {
+        "areas": ["GARAGE"],
+        "door_id": "door_07",
         "exit_device": "GROUND_LOOP",
+        "reader_types": ["LICENSEPLATE_CAMERA"],
         "description": ""
       }
     ],

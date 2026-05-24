@@ -4,16 +4,18 @@
   "requirements": {
     "door_rules": [
       {
-        "areas": ["serverruimten"],
+        "areas": ["Serverruimte"],
+        "door_id": "door_09",
         "reader_direction": "IN_ONLY",
         "reader_types": ["CARD"],
-        "description": "Serverruimte krijgt geen deurdranger"
+        "description": ""
       },
-        {
-        "areas": ["directiekantoren"],
+      {
+        "areas": ["Directiekantoor"],
+        "door_id": "door_08",
         "reader_direction": "IN_ONLY",
         "reader_types": ["CARD", "CODE"],
-        "description": "Serverruimte krijgt geen deurdranger"
+        "description": ""
       }
     ],
     "controller_rules": []

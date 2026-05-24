@@ -1,0 +1,42 @@
+{
+  "requirement_text": "Alle binnendeuren krijgen een kaartlezer en deurdranger.\nDe serverruimte krijgt een gezichtscanner in plaats van een kaartlezer.",
+  "available_spaces": [
+    "Serverruimte",
+    "Kantine",
+    "Kantoor",
+    "Gang",
+    "Entree"
+  ],
+  "available_doors": [
+    {
+      "door_id": "door_04",
+      "space_a": "Entree",
+      "space_b": "Hal",
+      "is_external": false
+    },
+    {
+      "door_id": "door_05",
+      "space_a": "Hal",
+      "space_b": "Kantine",
+      "is_external": false
+    },
+    {
+      "door_id": "door_06",
+      "space_a": "Hal",
+      "space_b": "Kantoor",
+      "is_external": false
+    },
+    {
+      "door_id": "door_09",
+      "space_a": "Gang",
+      "space_b": "Serverruimte",
+      "is_external": false
+    },
+    {
+      "door_id": "door_12",
+      "space_a": "OUTSIDE",
+      "space_b": "Entree",
+      "is_external": true
+    }
+  ]
+}
