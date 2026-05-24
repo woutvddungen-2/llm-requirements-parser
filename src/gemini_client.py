@@ -11,6 +11,7 @@ def gemini_generate_text(
     user_prompt: str,
     model_name: str,
     max_tokens: int,
+    temperature: float = 0.0,
 ) -> LLMResult:
     """
     Gemini-specific text generation using the Google GenAI SDK.
@@ -31,6 +32,7 @@ def gemini_generate_text(
                 system_instruction=system_prompt,
                 response_mime_type="application/json",  # JSON mode
                 max_output_tokens=max_tokens,
+                temperature=temperature,
             ),
         )
     except Exception as exc:

@@ -7,7 +7,7 @@ import pytest
 from src.parser import extract_requirements_json
 from src.few_shot import find_similar, build_context
 from tests.helpers import (
-    load_text,
+    load_case_input,
     load_json,
     normalize_for_comparison,
     focused_diff,
@@ -23,7 +23,7 @@ def discover_cases() -> list[Path]:
     tests = sorted([p for p in CASES_DIR.iterdir() if p.is_dir()])
     return [
         p for p in tests
-        if (p / "input.txt").exists()
+        if ((p / "input.json").exists() or (p / "input.txt").exists())
         and (p / "expected.json").exists()
         and not p.name.startswith("ignore_")
     ]
@@ -34,8 +34,7 @@ def test_extraction_matches_expected(
     case_dir: Path,
     model: str,
     use_few_shot,
-    few_shot_examples,
-    few_shot_embeddings,
+    request,
 ) -> None:
     """Test extraction accuracy with optional few-shot prompting.
     
@@ -43,35 +42,44 @@ def test_extraction_matches_expected(
         case_dir: Test case directory
         model: LLM model to use (vendor:model_name)
         use_few_shot: Whether to use few-shot examples
-        few_shot_examples: Few-shot example cases fixture
-        few_shot_embeddings: Few-shot embeddings fixture
+        request: Pytest request object used to lazily load few-shot fixtures
     
     Usage:
         pytest tests/ --models gemini --use-few-shot both -v
         pytest tests/ --models gemini,openai --use-few-shot both --count 3 -n auto -v
     """
-    input_path = case_dir / "input.txt"
     expected_path = case_dir / "expected.json"
-    requirement_text = load_text(input_path)
+    case_input = load_case_input(case_dir)
+    requirement_text = case_input["requirement_text"]
     expected = load_json(expected_path)
     run_id = get_run_id()
     
     # Build few-shot context if requested
     few_shot_context_str = None
     similar_cases = []
-    if use_few_shot and few_shot_examples:
-        similar_cases = find_similar(
-            requirement_text,
-            few_shot_examples,
-            few_shot_embeddings or {},
-            k=2
-        )
-        few_shot_context_str = build_context(similar_cases, few_shot_examples)
+    if use_few_shot:
+        few_shot_examples = request.getfixturevalue("few_shot_examples")
+        few_shot_embeddings = request.getfixturevalue("few_shot_embeddings")
+
+        if few_shot_examples:
+            similar_cases = find_similar(
+                requirement_text,
+                few_shot_examples,
+                few_shot_embeddings or {},
+                k=2
+            )
+            few_shot_context_str = build_context(similar_cases, few_shot_examples)
+
+    if use_few_shot and not few_shot_context_str:
+        few_shot_context_str = None
     
     # Run extraction
     llm_result = extract_requirements_json(
         requirement_text,
         model=model,
+        language=case_input.get("language", "Dutch"),
+        available_spaces=case_input.get("available_spaces"),
+        available_doors=case_input.get("available_doors"),
         rag_context=few_shot_context_str,
     )
 

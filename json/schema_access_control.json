@@ -1,22 +1,47 @@
 {
   "$defs": {
+    "ControllerConnectionEnum": {
+      "description": "How a controller communicates with doors/readers.",
+      "enum": [
+        "LAN",
+        "BUS",
+        "WIRELESS",
+        "HYBRID"
+      ],
+      "title": "ControllerConnectionEnum",
+      "type": "string"
+    },
     "ControllerRule": {
       "additionalProperties": false,
+      "description": "Defines which DoorRule areas are managed by a specific controller.",
       "properties": {
         "areas": {
-          "description": "Areas to which this controller rule applies",
+          "description": "Physical location(s) where controller hardware is installed",
           "items": {
             "type": "string"
           },
           "title": "Areas",
           "type": "array"
         },
-        "door_count": {
-          "description": "Number of doors controlled by the controller",
-          "maximum": 99,
-          "minimum": 1,
-          "title": "Door Count",
-          "type": "integer"
+        "manages_door_areas": {
+          "description": "DoorRule area names this controller manages",
+          "items": {
+            "type": "string"
+          },
+          "title": "Manages Door Areas",
+          "type": "array"
+        },
+        "connection_type": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ControllerConnectionEnum"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "How controller communicates with doors/readers"
         },
         "description": {
           "description": "Human-readable summary of the rule",
@@ -25,7 +50,6 @@
         }
       },
       "required": [
-        "door_count",
         "description"
       ],
       "title": "ControllerRule",
@@ -43,15 +67,35 @@
     },
     "DoorRule": {
       "additionalProperties": false,
-      "description": "Defines the access control configuration for one or more groups of doors.",
+      "description": "Defines the access control configuration for one or more doors.",
       "properties": {
         "areas": {
-          "description": "Door groups or areas to which this rule applies",
+          "description": "Space names this rule applies to. A door matches when either of its adjacent spaces appears in this list (case-insensitive substring).",
           "items": {
             "type": "string"
           },
-          "minItems": 1,
           "title": "Areas",
+          "type": "array"
+        },
+        "door_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Explicit ID of a single door to target. Use only when the requirement identifies one specific door by name or ID. Prefer areas-based rules when multiple doors share the same configuration.",
+          "title": "Door Id"
+        },
+        "connects_to_areas": {
+          "description": "When set together with areas, only doors that directly connect a space in areas to a space in connects_to_areas are matched (bidirectional). Use this to target the boundary door between two specific spaces.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Connects To Areas",
           "type": "array"
         },
         "reader_direction": {
@@ -120,7 +164,31 @@
             }
           ],
           "default": null,
-          "description": "Emergency release device"
+          "description": "Emergency release device on the non-secure side"
+        },
+        "exit_device_side_hint": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PlacementSideHintEnum"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional placement hint for exit devices. Use this only when the source text explicitly states the side."
+        },
+        "emergency_button_side_hint": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PlacementSideHintEnum"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional placement hint for emergency buttons. Use this only when the source text explicitly states the side."
         },
         "door_sensor": {
           "anyOf": [
@@ -195,6 +263,17 @@
       "title": "LockTypeEnum",
       "type": "string"
     },
+    "PlacementSideHintEnum": {
+      "description": "Optional relative-side hint for projected door accessories.",
+      "enum": [
+        "UNSPECIFIED",
+        "SAME_AS_READER",
+        "OPPOSITE_AS_READER",
+        "BOTH"
+      ],
+      "title": "PlacementSideHintEnum",
+      "type": "string"
+    },
     "ReaderDirectionEnum": {
       "description": "Direction in which authentication readers are installed on a door.",
       "enum": [
@@ -219,6 +298,7 @@
         "WIRELESS_KEYFOB",
         "MOBILE_APP",
         "LICENSEPLATE_CAMERA",
+        "INTERCOM",
         "OTHER"
       ],
       "title": "ReaderTypeEnum",

@@ -15,6 +15,43 @@ def load_json(path: Path) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def load_case_input(case_dir: Path) -> dict[str, Any]:
+    """
+    Load benchmark input in the same shape as the main API usage.
+
+    Preferred format:
+      input.json -> {"requirement_text": "...", "available_spaces": [...], "available_doors": [...]}
+
+    Legacy fallback:
+      input.txt -> plain requirement text
+    """
+    input_json = case_dir / "input.json"
+    input_txt = case_dir / "input.txt"
+
+    if input_json.exists():
+        payload = load_json(input_json)
+        if not isinstance(payload, dict):
+            raise ValueError(f"{input_json} must contain a JSON object.")
+        if "requirement_text" not in payload:
+            raise ValueError(f"{input_json} must include 'requirement_text'.")
+        return {
+            "requirement_text": str(payload["requirement_text"]).strip(),
+            "language": payload.get("language", "Dutch"),
+            "available_spaces": payload.get("available_spaces"),
+            "available_doors": payload.get("available_doors"),
+        }
+
+    if input_txt.exists():
+        return {
+            "requirement_text": load_text(input_txt),
+            "language": "Dutch",
+            "available_spaces": None,
+            "available_doors": None,
+        }
+
+    raise FileNotFoundError(f"No input.json or input.txt found in {case_dir}")
+
+
 def validate_output(raw_text: str) -> AccessControlSchema:
     cleaned = re.sub(r"^```(?:json)?\s*|\s*`+$", "", raw_text.strip())
     return AccessControlSchema.model_validate_json(cleaned)
@@ -29,10 +66,13 @@ def normalize_for_comparison(data: Any) -> Any:
     - sorts rule lists by areas
     """
     if isinstance(data, dict):
+        filtered = {k: v for k, v in data.items() if k != "description"}
+        # connects_to_areas is redundant when door_id is set — strip it before comparing
+        if "door_id" in filtered:
+            filtered.pop("connects_to_areas", None)
         return {
             key: normalize_for_comparison(value)
-            for key, value in sorted(data.items())
-            if key != "description"
+            for key, value in sorted(filtered.items())
         }
 
     if isinstance(data, list):

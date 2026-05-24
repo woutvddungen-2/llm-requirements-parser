@@ -64,5 +64,31 @@ DESCRIPTION RULE
 
 GOAL
 
-Produce the smallest possible set of final, non-overlapping rules.
-Do not output intermediate reasoning.
+Produce final, non-overlapping rules. Do not output intermediate reasoning.
+When available_doors are provided, always expand to one rule per physical door — do not group multiple doors into a single rule.
+
+---
+
+DOOR RESOLUTION
+
+is_external flag:
+- The `is_external` flag on each door is authoritative. Do not override it based on space names.
+- `is_external: false` → binnendeur, always. Even if the space is named "Entree", "Lobby", or similar.
+- `is_external: true` → buitendeur, always.
+- When a requirement targets "alle binnendeuren", include every door with `is_external: false`.
+
+door_id:
+- When available_doors are provided, resolve each rule to a specific door and set `door_id`.
+- Each rule targets exactly one door. When multiple doors match, emit one rule per door with the same fields.
+- Do not omit `door_id` when the mapping is known.
+
+areas with door_id:
+- `areas` must always be set, even when `door_id` is set.
+- Use the space name(s) from the requirement text that identify the door — not both sides from the door map.
+- Example: "serverruimte krijgt een paslezer" → areas=["serverruimte"], even if the door also connects to "hal".
+
+connects_to_areas:
+- Only set when `door_id` cannot be resolved AND the text explicitly says "van X naar Y" (naming both spaces).
+- NEVER set connects_to_areas when `door_id` is known — door_id already identifies the door uniquely.
+- NEVER set connects_to_areas just because you know both sides from the door map.
+- NEVER set connects_to_areas because one side is OUTSIDE — `areas` handles reader placement correctly.

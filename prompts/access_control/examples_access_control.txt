@@ -62,6 +62,46 @@ Output:
   }
 }
 
+Example 3 - door_id resolution, one rule per door
+
+Input:
+Alle binnendeuren krijgen een kaartlezer.
+
+Available doors:
+door_04: Entree <-> Hal, external=false
+door_05: Hal <-> Kantine, external=false
+door_09: Hal <-> Serverruimte, external=false
+
+Output:
+
+{
+  "system_type": "ACCESS_CONTROL",
+  "version": "1.0",
+  "requirements": {
+    "door_rules": [
+      {
+        "areas": ["Entree"],
+        "door_id": "door_04",
+        "reader_types": ["CARD"],
+        "description": "Binnendeur krijgt een kaartlezer"
+      },
+      {
+        "areas": ["Kantine"],
+        "door_id": "door_05",
+        "reader_types": ["CARD"],
+        "description": "Binnendeur krijgt een kaartlezer"
+      },
+      {
+        "areas": ["Serverruimte"],
+        "door_id": "door_09",
+        "reader_types": ["CARD"],
+        "description": "Binnendeur krijgt een kaartlezer"
+      }
+    ],
+    "controller_rules": []
+  }
+}
+
 CRITICAL OUTPUT RULE:
 Output RAW JSON only.
 No ```json, no ```, no prose, no comments.

@@ -10,6 +10,7 @@ def deepseek_generate_text(
     user_prompt: str,
     model_name: str,
     max_tokens: int,
+    temperature: float = 0.0,
 ) -> LLMResult:
     """
     DeepSeek-specific text generation using the OpenAI-compatible API.
@@ -29,6 +30,7 @@ def deepseek_generate_text(
         response = client.chat.completions.create(
             model=model_name,
             max_tokens=max_tokens,
+            temperature=temperature,
             response_format={"type": "json_object"},  # JSON mode
             messages=[
                 {"role": "system", "content": system_prompt},

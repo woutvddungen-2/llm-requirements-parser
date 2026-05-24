@@ -7,7 +7,13 @@ from openai import OpenAI, RateLimitError
 from src.llm_types import LLMResult
 
 
-def openai_generate_text(system_prompt: str, user_prompt: str, model_name: str, max_tokens: int) -> LLMResult:
+def openai_generate_text(
+    system_prompt: str,
+    user_prompt: str,
+    model_name: str,
+    max_tokens: int,
+    temperature: float = 0.0,
+) -> LLMResult:
     """
     OpenAI-specific text generation using the Responses API.
     Includes timing + token usage metadata.
@@ -24,6 +30,7 @@ def openai_generate_text(system_prompt: str, user_prompt: str, model_name: str, 
         response = client.responses.create(
             model=model_name,
             max_output_tokens=max_tokens,
+            temperature=temperature,
             text={"format": {"type": "json_object"}},
             input=[
                 {

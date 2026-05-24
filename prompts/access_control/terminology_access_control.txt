@@ -1,48 +1,46 @@
 TERMINOLOGY (NL → ENUM)
 
 Reader direction:
-inlezer/in lezer/in lezers/in kaartlezer/in kaartlezers -> IN_ONLY
-uitlezer/uit lezer/uit lezers/uit kaartlezer/uit kaartlezers -> OUT_ONLY
-inuitlezer/inuit lezer/in- en uitlezer/in en uitlezer -> IN_OUT
-geen lezer -> NONE
-   Otherwise → omit reader_direction
+inlezer / in lezer / in kaartlezer(s)              → IN_ONLY
+uitlezer / uit lezer / uit kaartlezer(s)            → OUT_ONLY
+inuitlezer / in- en uitlezer / in en uitlezer       → IN_OUT
+geen lezer                                          → NONE
+Otherwise                                           → omit reader_direction
 
-Reader:
-kaart/pas/badge → CARD
-code/pincode/keypad → CODE
-vingerafdruk → FINGERPRINT
-gezicht → FACE_RECOGNITION
-iris → IRIS_SCAN
-bluetooth → BLUETOOTH
-nfc → NFC
-handzender → WIRELESS_KEYFOB
-app → MOBILE_APP
-kenteken → LICENSEPLATE_CAMERA
+Reader type:
+kaart / pas / badge      → CARD
+code / pincode / keypad  → CODE
+vingerafdruk             → FINGERPRINT
+gezicht / oog(scanner)   → FACE_RECOGNITION
+iris                     → IRIS_SCAN
+bluetooth                → BLUETOOTH
+nfc                      → NFC
+handzender               → WIRELESS_KEYFOB
+app                      → MOBILE_APP
+kenteken                 → LICENSEPLATE_CAMERA
+intercom                 → INTERCOM
 
 Lock:
-motorslot → MOTORIZED_LOCK
-magneet → MAGNETIC_LOCK
-sluitplaat → ELECTRIC_STRIKE_PLATE
-elektrisch slot → SOLENOID_LOCK
-geen slot → NONE
+motorslot                → MOTORIZED_LOCK
+magneet(slot)            → MAGNETIC_LOCK
+sluitplaat               → ELECTRIC_STRIKE_PLATE
+elektrisch slot          → SOLENOID_LOCK
+geen slot                → NONE
 
 Door closer:
-deurdranger → MECHANICAL
-elektrische deurdranger → ELECTRIC
-zonder deurdranger → NONE
+deurdranger              → MECHANICAL
+elektrische deurdranger  → ELECTRIC
+vrijloopdeurdranger / zonder deurdranger → NONE
 
-Exit:
-exit knop → PUSH_BUTTON
-elleboog → ELBOW_ACTUATED
-uitrijlus → GROUND_LOOP
-bewegingssensor → MOTION_SENSOR
+Exit device:
+exit knop                → PUSH_BUTTON
+elleboog                 → ELBOW_ACTUATED
+uitrijlus                → GROUND_LOOP
+bewegingssensor          → MOTION_SENSOR
+Never use STANDALONE or INTRUSION for exit_device.
 
-Emergency:
-noodknop → STANDALONE
-gekoppeld aan inbraak → INTRUSION
-
-Special case:
-- ALWAYS include "controller_rules": [] in the output, even when empty.
-- uitrijlus -> exit_device = GROUND_LOOP
-- never map "uitrijlus" to reader_direction
-
+Emergency button:
+noodknop                           → STANDALONE
+groene handmelder / groene knop / groene melder → STANDALONE
+gekoppeld aan inbraak              → INTRUSION
+Never use PUSH_BUTTON, ELBOW_ACTUATED, GROUND_LOOP, or MOTION_SENSOR for emergency_button.

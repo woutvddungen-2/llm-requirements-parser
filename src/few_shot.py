@@ -45,12 +45,19 @@ def load_knowledge_base(knowledge_base_dir: Path) -> dict:
         if not case_dir.is_dir() or case_dir.name.startswith('ignore_'):
             continue
         
+        input_json_file = case_dir / 'input.json'
         input_file = case_dir / 'input.txt'
         expected_file = case_dir / 'expected.json'
-        
-        if input_file.exists() and expected_file.exists():
-            with open(input_file, 'r', encoding='utf-8') as f:
-                spec = f.read()
+
+        if expected_file.exists() and (input_json_file.exists() or input_file.exists()):
+            if input_json_file.exists():
+                with open(input_json_file, 'r', encoding='utf-8') as f:
+                    input_payload = json.load(f)
+                spec = input_payload.get('requirement_text', '')
+            else:
+                with open(input_file, 'r', encoding='utf-8') as f:
+                    spec = f.read()
+
             with open(expected_file, 'r', encoding='utf-8') as f:
                 expected = json.load(f)
             

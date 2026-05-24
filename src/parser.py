@@ -1,27 +1,12 @@
-"""Requirement extraction with minimal prompts and RAG support.
-
-Architecture:
-- Minimal system prompt (instructions only)
-- Schema definition (separate concern)
-- Terminology (separate concern)
-- RAG examples (dynamic, from knowledge base)
-"""
+"""Requirement extraction with composable prompts and RAG support."""
 
 from src.llm_client import generate_text, load_system_prompt
+from src.prompt_builder import PromptBuilder
 from src.llm_types import LLMResult
 
 DEFAULT_MAX_TOKENS = 4096
 
-# System prompt files
-PROMPT_FILES_MINIMAL = [
-    "prompts/system_core.txt",
-    "prompts/access_control/schema_access_control.txt", 
-    "prompts/access_control/terminology_access_control.txt",
-    "prompts/logic_rules.txt",
-]
-
-# Old approach (kept for comparison/fallback)
-PROMPT_FILES_FULL = [
+PROMPT_FILES = [
     "prompts/system_core.txt",
     "prompts/access_control/schema_access_control.txt",
     "prompts/access_control/terminology_access_control.txt",
@@ -30,65 +15,17 @@ PROMPT_FILES_FULL = [
 ]
 
 
-def build_system_prompt(use_few_shot: bool = False) -> str:
-    """
-    Build system prompt based on whether few-shot examples are used.
-    
-    With few-shot: Minimal system prompt (instructions + schema + terminology)
-    Without few-shot: Full system prompt (includes examples and rules)
-    
-    Args:
-        use_few_shot: If True, use minimal prompt. If False, use full prompt.
-    
-    Returns:
-        System prompt string
-    """
-    if use_few_shot:
-        return load_system_prompt(PROMPT_FILES_MINIMAL)
-    else:
-        return load_system_prompt(PROMPT_FILES_FULL)
+def build_system_prompt() -> str:
+    """Build the system prompt used for requirement extraction."""
+    return load_system_prompt(PROMPT_FILES)
 
 
-def build_base_user_prompt(requirement_text: str, language: str = "Dutch") -> str:
-    """
-    Build base user prompt without RAG context.
-    
-    Args:
-        requirement_text: Specification to extract
-        language: Language of specification
-    
-    Returns:
-        User prompt string
-    """
-    return f"""Convert the following {language} access control requirement text into JSON.
-
-Requirement text:
-{requirement_text}
-"""
-
-
-def build_few_shot_context_prompt(
+def build_user_prompt(
     requirement_text: str,
-    rag_context: str,
     language: str = "Dutch"
 ) -> str:
-    """
-    Build user prompt augmented with RAG context (similar examples).
-    
-    Args:
-        requirement_text: Specification to extract
-        rag_context: RAG context with similar examples
-        language: Language of specification
-    
-    Returns:
-        Augmented user prompt with RAG context
-    """
-    return f"""{rag_context}
-
-Now extract the following {language} specification:
-
-{requirement_text}
-"""
+    """Build the default user prompt for text-only extraction."""
+    return PromptBuilder(language=language).build(requirement_text)
 
 
 def extract_requirements_json(
@@ -96,51 +33,42 @@ def extract_requirements_json(
     model: str,
     max_tokens: int = DEFAULT_MAX_TOKENS,
     language: str = "Dutch",
-    rag_context: str = None,
+    available_spaces: list[str] | None = None,
+    available_doors: list[dict] | None = None,
+    validation_feedback: str | None = None,
+    rag_context: str | None = None,
+    temperature: float = 0.0,
 ) -> LLMResult:
-    """
-    Extract structured access control requirements using specified LLM.
-    
-    This is the main entry point. It orchestrates:
-    1. System prompt selection (minimal vs full)
-    2. User prompt building (with or without few-shot examples)
-    3. LLM call
-    
-    Args:
-        requirement_text: Specification to extract
-        model: LLM model (vendor:model_name format)
-        max_tokens: Maximum tokens for generation
-        language: Specification language (default: Dutch)
-        rag_context: Optional few-shot context with similar examples
-    
-    Returns:
-        LLMResult with extraction and metadata
-    
-    Raises:
-        ValueError: If model name is invalid
-    """
     if not model or not model.strip():
         raise ValueError("Model name must be provided and cannot be empty.")
-    
-    # Step 1: Build system prompt
-    system_prompt = build_system_prompt(use_few_shot=(rag_context is not None))
-    
-    # Step 2: Build user prompt
+
+    system_prompt = build_system_prompt()
+    user_prompt = PromptBuilder(
+        language=language,
+        available_spaces=available_spaces,
+        available_doors=available_doors,
+    ).build(requirement_text)
+
     if rag_context:
-        user_prompt = build_few_shot_context_prompt(
-            requirement_text,
-            rag_context,
-            language=language
+        user_prompt = (
+            f"{rag_context}\n\n"
+            f"Now extract the following {language} specification:\n\n"
+            f"{user_prompt}"
         )
-    else:
-        user_prompt = build_base_user_prompt(requirement_text, language=language)
-    
-    # Step 3: Call LLM
+
+    if validation_feedback:
+        user_prompt += (
+            "\n\nThe previous JSON output failed validation. "
+            "Return a corrected JSON object only, using the same schema and enum values.\n"
+            f"{validation_feedback}\n"
+        )
+
     return generate_text(
         system_prompt=system_prompt,
         user_prompt=user_prompt,
         model=model,
         max_tokens=max_tokens,
+        temperature=temperature,
     )
 
 
@@ -169,5 +97,7 @@ def extract_with_rag(
         model,
         max_tokens=max_tokens,
         language=language,
+        available_spaces=None,
+        available_doors=None,
         rag_context=rag_context,
     )

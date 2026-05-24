@@ -9,17 +9,22 @@ Root:
 
 DoorRule:
 - areas: List[string]
+- door_id: Single[string]
+- connects_to_areas: List[string]
 - reader_direction: Single[IN_ONLY | OUT_ONLY | IN_OUT | NONE]
-- reader_types: List[CARD | CODE | FINGERPRINT | FACE_RECOGNITION | IRIS_SCAN | BLUETOOTH | NFC | WIRELESS_KEYFOB | MOBILE_APP | LICENSEPLATE_CAMERA | OTHER]
+- reader_types: List[CARD | CODE | FINGERPRINT | FACE_RECOGNITION | IRIS_SCAN | BLUETOOTH | NFC | WIRELESS_KEYFOB | MOBILE_APP | LICENSEPLATE_CAMERA | INTERCOM | OTHER]
 - lock_type: Single[SOLENOID_LOCK | ELECTRIC_STRIKE_PLATE | MAGNETIC_LOCK | MOTORIZED_LOCK | OTHER | NONE]
 - door_closer: Single[NONE | MECHANICAL | ELECTRIC]
 - exit_device: Single[NONE | PUSH_BUTTON | ELBOW_ACTUATED | GROUND_LOOP | MOTION_SENSOR]
 - emergency_button: Single[NONE | STANDALONE | INTRUSION]
+- exit_device_side_hint: Single[UNSPECIFIED | SAME_AS_READER | OPPOSITE_AS_READER | BOTH]
+- emergency_button_side_hint: Single[UNSPECIFIED | SAME_AS_READER | OPPOSITE_AS_READER | BOTH]
 - door_sensor: Single[true | false]
 - anti_passback: Single[true | false]
 - description: Single[string]
 
 ControllerRule:
 - areas: List[string]
-- door_count: Single[integer 1..99]
+- manages_door_areas: List[string]
+- connection_type: Single[LAN | BUS | WIRELESS | HYBRID]
 - description: Single[string]

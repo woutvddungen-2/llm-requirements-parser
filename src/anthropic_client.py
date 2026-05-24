@@ -22,6 +22,7 @@ def anthropic_generate_text(
     user_prompt: str,
     model_name: str,
     max_tokens: int,
+    temperature: float = 0.0,
 ) -> LLMResult:
     """
     Anthropic-specific text generation using the Messages API.
@@ -41,6 +42,7 @@ def anthropic_generate_text(
         message = client.messages.create(
             model=model_name,
             max_tokens=max_tokens,
+            temperature=temperature,
             system=system_prompt,
             messages=[
                 {
