@@ -81,6 +81,7 @@ door_id:
 - When available_doors are provided, resolve each rule to a specific door and set `door_id`.
 - Each rule targets exactly one door. When multiple doors match, emit one rule per door with the same fields.
 - Do not omit `door_id` when the mapping is known.
+- If no door in the list matches the requirement, still emit the rule using `areas` and `connects_to_areas` — do NOT suppress the rule. The door list may be incomplete.
 
 areas with door_id:
 - `areas` must always be set, even when `door_id` is set.
@@ -92,3 +93,9 @@ connects_to_areas:
 - NEVER set connects_to_areas when `door_id` is known — door_id already identifies the door uniquely.
 - NEVER set connects_to_areas just because you know both sides from the door map.
 - NEVER set connects_to_areas because one side is OUTSIDE — `areas` handles reader placement correctly.
+
+Direction mapping for "van X naar Y":
+- X is the source/unsafe side → put X in `connects_to_areas`
+- Y is the protected/destination side → put Y in `areas`
+- Example: "deur van Hal naar Serverruimte" → areas=["Serverruimte"], connects_to_areas=["Hal"]
+- NEVER put the same space in both `areas` and `connects_to_areas`.

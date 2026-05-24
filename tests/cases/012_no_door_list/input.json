@@ -1,5 +1,0 @@
-{
-  "requirement_text": "De deur van de hal naar de serverruimte krijgt een IN kaartlezer.",
-  "available_spaces": ["Hal", "Serverruimte", "Kantine", "Kantoor"],
-  "available_doors": []
-}

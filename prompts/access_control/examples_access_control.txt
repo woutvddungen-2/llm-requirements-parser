@@ -102,6 +102,41 @@ Output:
   }
 }
 
+Example 4 - connects_to_areas fallback when door list is incomplete
+
+Input:
+De deur van de Kantine naar het Kantoor krijgt een IN kaartlezer.
+
+Available spaces:
+- Entree
+- Hal
+- Serverruimte
+
+Available doors:
+door_04: Entree <-> Hal, external=false
+door_05: Hal <-> Serverruimte, external=false
+
+Note: no door connects Kantoor to Kantine — still emit the rule without door_id.
+
+Output:
+
+{
+  "system_type": "ACCESS_CONTROL",
+  "version": "1.0",
+  "requirements": {
+    "door_rules": [
+      {
+        "areas": ["Kantoor"],
+        "connects_to_areas": ["Kantine"],
+        "reader_direction": "IN_ONLY",
+        "reader_types": ["CARD"],
+        "description": "Deur van Kantine naar Kantoor krijgt een IN kaartlezer"
+      }
+    ],
+    "controller_rules": []
+  }
+}
+
 CRITICAL OUTPUT RULE:
 Output RAW JSON only.
 No ```json, no ```, no prose, no comments.

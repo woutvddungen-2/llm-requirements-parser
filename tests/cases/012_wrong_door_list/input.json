@@ -1,0 +1,30 @@
+{
+  "requirement_text": "De deur van de gang naar de serverruimte krijgt een IN kaartlezer.",
+  "available_spaces": ["Gang", "Server" ,"Entree", "Hal", "Kantine", "Kantoor"],
+  "available_doors": [
+    {
+      "door_id": "door_04",
+      "space_a": "Entree",
+      "space_b": "Hal",
+      "is_external": false
+    },
+    {
+      "door_id": "door_05",
+      "space_a": "Hal",
+      "space_b": "Kantine",
+      "is_external": false
+    },
+    {
+      "door_id": "door_06",
+      "space_a": "Hal",
+      "space_b": "Kantoor",
+      "is_external": false
+    },
+    {
+      "door_id": "door_12",
+      "space_a": "OUTSIDE",
+      "space_b": "Entree",
+      "is_external": true
+    }
+  ]
+}

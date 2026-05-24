@@ -21,4 +21,4 @@ Door resolution:
 - Always set `door_id` when the door can be resolved from the available context. Do not omit it when the mapping is known.
 - When multiple doors match the same requirement, emit one rule per door — each with its own `door_id` and identical configuration fields.
 - Always populate `areas` even when `door_id` is set. Never set `connects_to_areas` when `door_id` is known.
-- Only omit `door_id` when the door cannot be resolved from the available context.
+- Only omit `door_id` when the door cannot be resolved from the available context. If no door in the list matches, still emit the rule without `door_id` — the door list may be incomplete.

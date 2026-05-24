@@ -4,8 +4,8 @@
   "requirements": {
     "door_rules": [
       {
-        "areas": ["Serverruimte"],
-        "connects_to_areas": ["Hal"],
+        "areas": ["Server"],
+        "connects_to_areas": ["Gang"],
         "reader_direction": "IN_ONLY",
         "reader_types": ["CARD"],
         "description": ""

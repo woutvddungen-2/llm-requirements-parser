@@ -33,7 +33,7 @@ class PromptBuilder:
         return (
             "\n\nAvailable spaces in this floorplan:\n"
             f"{spaces_list}"
-            "\n\nUse ONLY these space names when specifying areas."
+            "\n\nUse ONLY these space names when specifying areas, if an available space name matches the text. If no available space name matches, the list may be incomplete — still emit the rule using the text names. Never suppress a rule just because no matching space was found.\n\n"
         )
 
     def _build_doors_context(self) -> str:
@@ -61,7 +61,7 @@ class PromptBuilder:
             "\nWhen text names two spaces, choose a door from this list that actually connects those spaces."
             "\nIf one named space is generic or ambiguous (for example 'hal'), use the other named space to disambiguate from the door list."
             "\nDo not choose a similarly named space if no listed door connects it to the other named space."
-            "\nFor entrances, exits, and exterior access, prefer OUTSIDE when the door connects to outside."
+            "\nIf no door in this list connects the named spaces, the list may be incomplete — still emit the rule using areas and connects_to_areas without door_id. Never suppress a rule just because no matching door was found."
             "\nOnly use placement side hint fields (exit_device_side_hint, emergency_button_side_hint) when the text explicitly states the side. Never infer or default these."
             "\nWhen a rule targets a specific door (using door_id), set areas to the space name(s) from the requirement text — not both sides from the door map.\n\n"
         )
