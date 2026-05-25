@@ -18,31 +18,36 @@ INTERPRETATION RULES
    then serverruimte keeps deurdranger and sluitplaat and only reader_types changes.
 
    Addition / accumulation:
-   When the text adds a new property for the same door or group, keep the existing rule and add the new field to it.
+   When the text adds a new property for the same door or group, keep one rule and add the new field.
    Example:
    - "De toegangsdeur krijgt een kaartlezer."
    - "Diezelfde deur krijgt ook een noodknop."
    → one rule with both reader_types and emergency_button
 
    Merging repeated clauses:
-   If the same physical door is mentioned again later in the text, do not create a second rule.
-   Instead, merge the new explicit property into the existing rule for that door.
+   If the same physical door is mentioned again later, do not create a second rule.
+   Merge the new explicit property into the existing rule.
    This applies across sentences, bullets, paragraphs and page breaks.
 
    Inheritance across sections:
    If a later clause refers to the same door/group with a generic reference ("deze deur", "deze toegang", "dezelfde deuren"), resolve it back to the previously introduced rule and add only the new field(s).
    If a later clause introduces a new named target such as nooddeur, nooduitgang, vluchtdeur, personentoegang, abonnementdeur, or entreedeur, start a fresh target unless the text explicitly says it is the same door.
+   Do not merge distant numbered sections merely because they reuse a generic label such as toegangsdeur, toegangsdeuren, automatische deur, buitendeur, or entree.
+   Merge across sections only when the text clearly restates the same physical door by room/boundary or by anaphora such as "dezelfde deur" or "deze deur".
 
    Cross-sentence component linkage:
-   If one sentence or heading first lists door-scoped access-control components for a subsystem, and the next sentence names the target doors for that same subsystem, carry those listed door-scoped components into the target-door rule.
+   If one sentence or heading first lists door-scoped access-control components for a subsystem, and the next sentence names the target doors for that same subsystem, carry those components into the target-door rule.
    Example:
    - "Voor toegangscontrole worden aangebracht: kaartlezers, elektrische sloten, proximity passen."
    - "De toegangsdeuren krijgen een kaartlezer en een nooddrukknop."
    -> the final rule for the toegangsdeuren includes CARD, SOLENOID_LOCK, and the explicit emergency button.
-   Only carry forward door-scoped access-control components such as readers, locks, sensors, and controllers. Do not carry forward generic infrastructure such as leidingaanleg or bekabeling.
-   Apply this linkage only to the same clearly identified target doors. Do not expand a generic access-control component list to every available door in the floorplan.
-   When the later sentence says "toegangsdeur" / "toegangsdeuren" without naming rooms, prefer the resolved exterior access doors connected to OUTSIDE or the explicitly named person/visitor entrance doors. Do not treat every binnendeur as a toegangsdeur.
-   If the linked component list explicitly contains elektrische sloten / elektrisch slot, preserve lock_type = SOLENOID_LOCK on the resolved target doors even when a different section later adds an exit_device such as elleboogschakelaar or radar.
+   Only carry forward door-scoped components such as readers, locks, sensors, and controllers.
+   Do not carry forward generic infrastructure such as leidingaanleg or bekabeling.
+   Apply this linkage only to the same clearly identified target doors.
+   Do not expand a generic component list to every available door in the floorplan.
+   When the later sentence says "toegangsdeur" / "toegangsdeuren" without naming rooms, prefer the resolved exterior access doors connected to OUTSIDE or the explicitly named person/visitor entrance doors.
+   If the linked component list explicitly contains elektrische sloten / elektrisch slot, preserve lock_type = SOLENOID_LOCK even when a different section later adds an exit_device such as elleboogschakelaar or radar.
+   Within one local subsection or numbered block, keep the current resolved target doors active until the text explicitly introduces a new target. Later local sentences about deurstandmelders, noodknoppen, sloten, kaartlezers, or controller wiring apply to those same active target doors unless a new door/group is named.
 
 4. Door logic:
 There are two broad groups:
@@ -61,11 +66,13 @@ There are two broad groups:
    Examples:
    - "De serverruimte krijgt een gezichtscanner" -> the doors of the serverruimte get a gezichtscanner
    - "Directiekantoren krijgen ook een pincodelezer" -> the doors of directiekantoren also get a pincodelezer
-   - Intercom instructions belong to the same physical access door they describe. When the text says "bij de personen toegang", attach intercom to that access door. When it says "in het gesloten gedeelte direct achter de toegang" or "in het open gedeelte naast de abonnementdeur in de scheiding tussen open en gesloten gedeelte", attach intercom to the boundary door between those sections.
-   - If the same boundary door is described from both sides, keep one DoorRule for that door_id. Choose the protected / destination side as `areas` when one side is clearly the secured side, and do not create a second rule just because another sentence describes the same door from the opposite side.
-   - If several sentences describe the same door, merge them into one rule. The final output should not contain separate rules for the same physical door_id just because the feature was mentioned in multiple places.
-   - Distinct numbered sections or headings stay independent unless the text explicitly links them to the same door. If an automatic-door section and an access-control section both apply to the same exterior access door, keep both sets of fields. The automatic-door section may add exit_device, but it must not replace explicit reader_types, lock_type, emergency_button, or door_sensor from the access-control section.
-   - Exit-device hardware is additive. If a door already has an explicit lock_type from access control, a later automatic-door sentence may add exit_device but must not remove or replace the lock_type.
+   - Intercom instructions belong to the physical access door they describe. "bij de personen toegang" attaches to that access door. "in het gesloten gedeelte direct achter de toegang" and "naast de abonnementdeur in de scheiding tussen open en gesloten gedeelte" both attach to the same boundary door between those sections — create exactly one rule for that boundary door_id and do not split into separate rules for each side.
+   - If the same boundary door is described from both sides, keep one DoorRule for that door_id. Choose the protected / destination side as `areas` when one side is clearly the secured side.
+   - If several sentences describe the same door, merge them into one rule.
+   - Distinct numbered sections or headings stay independent unless the text explicitly links them to the same door.
+   - An automatic-door section and an access-control section do not merge just because both mention generic toegangsdeuren. Merge them only if the text makes the same physical door explicit.
+   - When a local access-control subsection explicitly names locks, readers, emergency buttons, or door sensors for resolved target doors, those local fields take precedence over generic automatic-door hardware from a distant section.
+   - Exit-device hardware (elbow actuators, radar, motion sensors) from a distant automatic-door or accessibility section must NOT be added to access-control door rules. When the access-control section defines a door's properties, exit_device from any other section is ignored entirely — do not add it even as a supplementary field.
 
    Named areas such as serverruimte or directiekantoor are not broad door groups by themselves; only their doors inherit door properties.
 
@@ -85,21 +92,27 @@ There are two broad groups:
 7. Do NOT infer:
    - No lock from door closer
    - No direction from reader type
+   - No reader_direction from generic kaartlezer(s), paslezer(s), badgelezer(s), or intercom. Only set reader_direction when IN, UIT, in/uitlezer, aan weerszijden, or equivalent wording is explicit. "aan weerszijden" always maps to IN_OUT. Once reader_direction is established (e.g. from "aan weerszijden"), do not remove or change it when merging additional reader types such as intercom from a later sentence.
+   - No explicit absence fields from silence. Do not emit `NONE`, `false`, or any other explicit "not present" value unless the text clearly states absence, such as "geen", "zonder", "niet aanwezig", or equivalent wording.
+   - If the text does not explicitly state absence, omit the field instead of outputting `NONE`. This applies especially to lock_type, door_closer, reader_direction, exit_device, and emergency_button.
    - No reader_types = OTHER for generic door hardware, automatic-door hardware, or devices that map more specifically to exit_device, lock_type, emergency_button, or door_sensor
    - No emergency button from a door contact or alarm contact
+   - Do not create door rules from requirements in general building, electrical, plumbing, ventilation, or painting sections that are not part of the access-control specification. A deurcontacten or deurstandmelder requirement in an electrical installation section (e.g., under a heading like 'Deurcontacten', 'Kabelaanleg', or 'Installatieonderdelen') does not generate a door_sensor rule unless it is explicitly inside the access-control section.
+   - No side-hint from "binnenzijde" or "buitenzijde" alone. Use exit_device_side_hint or emergency_button_side_hint only when the text explicitly relates that side to the reader side, for example "zelfde zijde als de lezer" or "tegenoverliggende zijde van de lezer".
    - Unnamed "sluit-mechanisme" stays generic (map as OTHER), and "alarmeringsmechanisme" only becomes a door sensor when the text is about a door contact / magnetic contact
    - Do not map GfS EN Exit controlsysteem / GfS TA alarmsysteem to exit_device unless the text explicitly says exit knop, elleboog, uitrijlus, or bewegingssensor
-   - Do not duplicate the same intercom instruction as separate rules when it refers to the same physical door; merge it into the existing door rule for that door
-   - Do not create a new rule for a door just because a later line adds a lock, sensor, reader, intercom, or emergency function. Update the existing door rule instead.
-   - Do not drop door_sensor from "sluit- en alarmeringsmechanisme" when that wording is used for a concrete person access or access-control door. In that context, model both the lock part and the alarm/contact part.
+   - Do not duplicate the same intercom instruction as separate rules when it refers to the same physical door
+   - Do not create a new rule for a door just because a later line adds a lock, sensor, reader, intercom, or emergency function
+   - Do not drop door_sensor from "sluit- en alarmeringsmechanisme" when that wording is used for a concrete person access or access-control door
 
 8. High-value term mappings:
    Keep these mappings short and literal. Do not expand them into broader guesses.
    - kaartlezer / kaartlezers / kaartlezer(s) / IN kaartlezer / in kaartlezer → reader_types includes CARD, reader_direction = IN_ONLY when "IN" is explicit
+   - kaartlezers aan weerszijden / aan weerszijden voorzien van kaartlezers → reader_types includes CARD and reader_direction = IN_OUT
    - pincodelezer / codelezer / keypad → reader_types includes CODE
    - intercom / spreekunit / personenintercom → reader_types includes INTERCOM when it is clearly the access device
    - deurcontact / deurcontacten / standmelder / deurstandmelder → door_sensor = true
-   - MIVA-openingsysteem / elleboogschakelaar / elleboogknop → exit_device = ELBOW_ACTUATED when the text is about exiting through the door
+   - MIVA-openingsysteem / elleboogschakelaar / elleboogknop → exit_device = ELBOW_ACTUATED only when this requirement appears within the access-control section itself and explicitly describes the exit mechanism for that specific controlled door. Do not apply from a general automatic-door, building-automation, or accessibility section.
    - radar / aanwezigheidssensor / bewegingssensor → exit_device = MOTION_SENSOR when the text is about exiting through the door
    - nooddrukknop / ontgrendeldrukknop / noodknop → emergency_button = STANDALONE
    - databus / bus / RS485 → connection_type = BUS
@@ -107,28 +120,25 @@ There are two broad groups:
    - elektrische sloten / elektrisch slot → lock_type = SOLENOID_LOCK
    - GfS EN Exit controlsysteem / GfS TA alarmsysteem → do not force into exit_device unless the sentence explicitly names one of the supported exit-device enums
 
+11. Controller scope:
+   For controller_rules, `manages_door_areas` must list only the areas of the door_rules that the same access-control subsection actually targets.
+   Do not copy every floorplan area into `manages_door_areas`.
+
 9. Ambiguous alternatives:
    When a sentence uses "of" between two device names, do not invent both unless the source text explicitly says both are included.
    If the surrounding sentence makes one mapping concrete (for example one device is clearly an access trigger and the other is only an alternative wording), choose the concrete mapping and keep the rest of the rule unchanged.
 
 10. Replacement
    Replacement is field-specific, not whole-rule replacement: "in plaats van" replaces only the conflicting field, all other inherited fields remain.
----
 
 DESCRIPTION RULE
-
 - Must summarize ONLY structured fields.
 - No extra interpretation.
 - No ignored information.
 
----
-
 GOAL
-
 Produce final, non-overlapping rules. Do not output intermediate reasoning.
 When available_doors are provided, always expand to one rule per physical door — do not group multiple doors into a single rule.
-
----
 
 DOOR RESOLUTION
 
