@@ -1,0 +1,24 @@
+{
+  "requirement_text": "De deur van de hal naar de kantoorruimte krijgt een kaartlezer. Dezelfde deur krijgt ook een uitlezer.",
+  "language": "Dutch",
+  "available_spaces": [
+    "Hal",
+    "Kantoorruimte",
+    "Entree",
+    "Buiten"
+  ],
+  "available_doors": [
+    {
+      "door_id": "door_80",
+      "space_a": "Hal",
+      "space_b": "Kantoorruimte",
+      "is_external": false
+    },
+    {
+      "door_id": "door_81",
+      "space_a": "OUTSIDE",
+      "space_b": "Entree",
+      "is_external": true
+    }
+  ]
+}

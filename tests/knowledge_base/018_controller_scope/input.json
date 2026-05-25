@@ -1,0 +1,32 @@
+{
+  "requirement_text": "Een Deurcontroller in de serverruimte bedient de entree en de parkeergarage \n deze dient aangesloten te worden op het bestaande LAN netwerk",
+  "language": "Dutch",
+  "available_spaces": [
+    "Serverruimte",
+    "Entree",
+    "Parkeergarage",
+    "Hal",
+    "Kantoor",
+    "Buiten"
+  ],
+  "available_doors": [
+    {
+      "door_id": "door_40",
+      "space_a": "OUTSIDE",
+      "space_b": "Entree",
+      "is_external": true
+    },
+    {
+      "door_id": "door_41",
+      "space_a": "OUTSIDE",
+      "space_b": "Parkeergarage",
+      "is_external": true
+    },
+    {
+      "door_id": "door_42",
+      "space_a": "Hal",
+      "space_b": "Kantoor",
+      "is_external": false
+    }
+  ]
+}

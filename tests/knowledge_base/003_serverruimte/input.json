@@ -1,0 +1,134 @@
+{
+  "requirement_text": "De serverruimte krijgt een gezichtscanner in plaats van een kaartlezer.",
+  "available_spaces": [
+    "Voordeur",
+    "Achterdeur",
+    "Nooduitgang",
+    "Entree",
+    "Hal",
+    "Kantine",
+    "Kantoor",
+    "Vergaderruimte",
+    "Directiekantoor",
+    "Serverruimte",
+    "Receptie",
+    "Bezoekersingang",
+    "Geldkamer",
+    "Laboratorium",
+    "Parkeergarage",
+    "VIP kantoor",
+    "VIP parkeerplaats slagboom",
+    "Fietsenstalling",
+    "Buiten"
+  ],
+  "available_doors": [
+    {
+      "door_id": "door_01",
+      "space_a": "OUTSIDE",
+      "space_b": "Voordeur",
+      "is_external": true
+    },
+    {
+      "door_id": "door_02",
+      "space_a": "OUTSIDE",
+      "space_b": "Achterdeur",
+      "is_external": true
+    },
+    {
+      "door_id": "door_03",
+      "space_a": "OUTSIDE",
+      "space_b": "Nooduitgang",
+      "is_external": true
+    },
+    {
+      "door_id": "door_04",
+      "space_a": "OUTSIDE",
+      "space_b": "Entree",
+      "is_external": true
+    },
+    {
+      "door_id": "door_05",
+      "space_a": "Entree",
+      "space_b": "Hal",
+      "is_external": false
+    },
+    {
+      "door_id": "door_06",
+      "space_a": "Hal",
+      "space_b": "Kantine",
+      "is_external": false
+    },
+    {
+      "door_id": "door_07",
+      "space_a": "Hal",
+      "space_b": "Kantoor",
+      "is_external": false
+    },
+    {
+      "door_id": "door_08",
+      "space_a": "Hal",
+      "space_b": "Vergaderruimte",
+      "is_external": false
+    },
+    {
+      "door_id": "door_09",
+      "space_a": "Hal",
+      "space_b": "Directiekantoor",
+      "is_external": false
+    },
+    {
+      "door_id": "door_10",
+      "space_a": "Hal",
+      "space_b": "Serverruimte",
+      "is_external": false
+    },
+    {
+      "door_id": "door_11",
+      "space_a": "Entree",
+      "space_b": "Receptie",
+      "is_external": false
+    },
+    {
+      "door_id": "door_12",
+      "space_a": "Entree",
+      "space_b": "Bezoekersingang",
+      "is_external": false
+    },
+    {
+      "door_id": "door_13",
+      "space_a": "Entree",
+      "space_b": "Geldkamer",
+      "is_external": false
+    },
+    {
+      "door_id": "door_14",
+      "space_a": "Entree",
+      "space_b": "Laboratorium",
+      "is_external": false
+    },
+    {
+      "door_id": "door_15",
+      "space_a": "OUTSIDE",
+      "space_b": "Parkeergarage",
+      "is_external": true
+    },
+    {
+      "door_id": "door_16",
+      "space_a": "OUTSIDE",
+      "space_b": "VIP parkeerplaats slagboom",
+      "is_external": true
+    },
+    {
+      "door_id": "door_17",
+      "space_a": "OUTSIDE",
+      "space_b": "Fietsenstalling",
+      "is_external": true
+    },
+    {
+      "door_id": "door_18",
+      "space_a": "OUTSIDE",
+      "space_b": "Buiten",
+      "is_external": true
+    }
+  ]
+}

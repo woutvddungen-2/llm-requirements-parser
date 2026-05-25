@@ -20,7 +20,7 @@
         "description": ""
       },
       {
-        "areas": ["GARAGE"],
+        "areas": ["-1.10 Parkeergarage"],
         "door_id": "door_07",
         "exit_device": "GROUND_LOOP",
         "reader_types": ["LICENSEPLATE_CAMERA"],

@@ -3,6 +3,7 @@
 from datetime import UTC, datetime
 import json
 from pathlib import Path
+from time import perf_counter
 import pytest
 from src.parser import extract_requirements_json
 from src.few_shot import find_similar, build_context
@@ -53,11 +54,14 @@ def test_extraction_matches_expected(
     requirement_text = case_input["requirement_text"]
     expected = load_json(expected_path)
     run_id = get_run_id()
+    total_started = perf_counter()
     
     # Build few-shot context if requested
     few_shot_context_str = None
     similar_cases = []
+    few_shot_setup_ms = 0
     if use_few_shot:
+        setup_started = perf_counter()
         few_shot_examples = request.getfixturevalue("few_shot_examples")
         few_shot_embeddings = request.getfixturevalue("few_shot_embeddings")
 
@@ -66,13 +70,12 @@ def test_extraction_matches_expected(
                 requirement_text,
                 few_shot_examples,
                 few_shot_embeddings or {},
-                k=2
+                k=4
             )
             few_shot_context_str = build_context(similar_cases, few_shot_examples)
 
-    if use_few_shot and not few_shot_context_str:
-        few_shot_context_str = None
-    
+        few_shot_setup_ms = int((perf_counter() - setup_started) * 1000)
+
     # Run extraction
     llm_result = extract_requirements_json(
         requirement_text,
@@ -87,6 +90,7 @@ def test_extraction_matches_expected(
     try:
         validated = validate_output(llm_result.text)
     except Exception as ex:
+        total_duration_ms = int((perf_counter() - total_started) * 1000)
         entry = {
             "timestamp": datetime.now(UTC).isoformat(),
             "run_id": run_id,
@@ -103,6 +107,8 @@ def test_extraction_matches_expected(
             "started_at": llm_result.started_at,
             "completed_at": llm_result.completed_at,
             "duration_ms": llm_result.duration_ms,
+            "few_shot_setup_ms": few_shot_setup_ms,
+            "total_duration_ms": total_duration_ms,
             "input_tokens": llm_result.input_tokens,
             "output_tokens": llm_result.output_tokens,
             "error": str(ex),
@@ -130,6 +136,7 @@ def test_extraction_matches_expected(
 
     diff = focused_diff(expected_pretty, actual_pretty, context=2)
     passed = actual_normalized == expected_normalized
+    total_duration_ms = int((perf_counter() - total_started) * 1000)
 
     # Log result
     entry = {
@@ -148,6 +155,8 @@ def test_extraction_matches_expected(
         "started_at": llm_result.started_at,
         "completed_at": llm_result.completed_at,
         "duration_ms": llm_result.duration_ms,
+        "few_shot_setup_ms": few_shot_setup_ms,
+        "total_duration_ms": total_duration_ms,
         "input_tokens": llm_result.input_tokens,
         "output_tokens": llm_result.output_tokens,
     }
@@ -161,7 +170,7 @@ def test_extraction_matches_expected(
             f"\nRUN_ID: {run_id}"
             f"\nMODEL: {model}{rag_str}"
             f"\nCASE: {case_dir.name}"
-            f"\nDURATION_MS: {llm_result.duration_ms}"
+            f"\nDURATION_MS: llm={llm_result.duration_ms}, few_shot_setup={few_shot_setup_ms}, total={total_duration_ms}"
             f"\nTOKENS: in={llm_result.input_tokens}, out={llm_result.output_tokens}"
             f"\n\nDIFF:\n{diff}",
             pytrace=False,

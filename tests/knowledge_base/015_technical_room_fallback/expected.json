@@ -1,0 +1,15 @@
+{
+  "system_type": "ACCESS_CONTROL",
+  "version": "1.0",
+  "requirements": {
+    "door_rules": [
+      {
+        "areas": ["Technische ruimte"],
+        "reader_types": ["CODE"],
+        "lock_type": "MAGNETIC_LOCK",
+        "description": "De technische ruimte krijgt een pincodelezer en een magneetslot"
+      }
+    ],
+    "controller_rules": []
+  }
+}

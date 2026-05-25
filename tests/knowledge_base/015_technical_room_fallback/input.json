@@ -1,0 +1,34 @@
+{
+  "requirement_text": "De technische ruimte krijgt een pincodelezer en een magneetslot.",
+  "language": "Dutch",
+  "available_spaces": [
+    "Technische ruimte",
+    "Hal",
+    "Kantoor",
+    "Kantine",
+    "Entree",
+    "Voordeur",
+    "Achterdeur",
+    "Buiten"
+  ],
+  "available_doors": [
+    {
+      "door_id": "door_10",
+      "space_a": "Hal",
+      "space_b": "Kantoor",
+      "is_external": false
+    },
+    {
+      "door_id": "door_11",
+      "space_a": "Hal",
+      "space_b": "Kantine",
+      "is_external": false
+    },
+    {
+      "door_id": "door_12",
+      "space_a": "OUTSIDE",
+      "space_b": "Entree",
+      "is_external": true
+    }
+  ]
+}

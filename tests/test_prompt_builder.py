@@ -60,9 +60,12 @@ def test_extract_requirements_appends_validation_feedback(monkeypatch):
         model="openai:gpt-4.1-mini",
         available_spaces=["serverruimte"],
         available_doors=[{"door_id": "door_1", "space_a": "serverruimte", "space_b": "OUTSIDE", "is_external": True}],
+        rag_context="REFERENCE EXAMPLES:\nExample 1",
         validation_feedback="Missing door_id",
     )
 
+    assert "REFERENCE EXAMPLES:\nExample 1" in captured["system_prompt"]
+    assert "REFERENCE EXAMPLES:\nExample 1" not in captured["user_prompt"]
     assert "Available spaces in this floorplan:" in captured["user_prompt"]
     assert "Available doors in this floorplan:" in captured["user_prompt"]
     assert "The previous JSON output failed validation." in captured["user_prompt"]

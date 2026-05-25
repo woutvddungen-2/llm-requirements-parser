@@ -1,0 +1,15 @@
+{
+  "system_type": "ACCESS_CONTROL",
+  "version": "1.0",
+  "requirements": {
+    "door_rules": [],
+    "controller_rules": [
+      {
+        "areas": ["Serverruimte"],
+        "manages_door_areas": ["Entree", "Parkeergarage"],
+        "connection_type": "LAN",
+        "description": "De centrale controller in de serverruimte bedient de entree en de parkeergarage via LAN"
+      }
+    ]
+  }
+}

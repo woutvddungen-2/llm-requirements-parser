@@ -1,0 +1,25 @@
+{
+  "requirement_text": "De deur van de kantine naar de hal krijgt een kaartlezer en een exit knop aan dezelfde zijde als de lezer.",
+  "language": "Dutch",
+  "available_spaces": [
+    "Kantine",
+    "Hal",
+    "Kantoor",
+    "Entree",
+    "Buiten"
+  ],
+  "available_doors": [
+    {
+      "door_id": "door_60",
+      "space_a": "Kantine",
+      "space_b": "Hal",
+      "is_external": false
+    },
+    {
+      "door_id": "door_61",
+      "space_a": "OUTSIDE",
+      "space_b": "Entree",
+      "is_external": true
+    }
+  ]
+}

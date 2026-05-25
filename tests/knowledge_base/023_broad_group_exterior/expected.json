@@ -1,0 +1,34 @@
+{
+  "system_type": "ACCESS_CONTROL",
+  "version": "1.0",
+  "requirements": {
+    "door_rules": [
+      {
+        "areas": ["Voordeur"],
+        "reader_types": ["CARD"],
+        "description": "Voordeur krijgt een kaartlezer",
+        "door_id": "door_90"
+      },
+      {
+        "areas": ["Achterdeur"],
+        "reader_types": ["CARD"],
+        "description": "Achterdeur krijgt een kaartlezer",
+        "door_id": "door_91"
+      },
+      {
+        "areas": ["Nooduitgang"],
+        "reader_types": ["CARD"],
+        "description": "Nooduitgang krijgt een kaartlezer",
+        "door_id": "door_92"
+      },
+      {
+        "areas": ["Hal"],
+        "connects_to_areas": ["Entree"],
+        "reader_types": ["CARD"],
+        "description": "De deur van de entree naar de hal krijgt een kaartlezer",
+        "door_id": "door_93"
+      }
+    ],
+    "controller_rules": []
+  }
+}

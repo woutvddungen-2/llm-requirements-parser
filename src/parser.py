@@ -6,18 +6,29 @@ from src.llm_types import LLMResult
 
 DEFAULT_MAX_TOKENS = 4096
 
-PROMPT_FILES = [
+BASE_PROMPT_FILES = [
     "prompts/system_core.txt",
     "prompts/access_control/schema_access_control.txt",
     "prompts/access_control/terminology_access_control.txt",
     "prompts/logic_rules.txt",
+]
+
+STATIC_EXAMPLE_FILES = [
     "prompts/access_control/examples_access_control.txt",
 ]
 
 
-def build_system_prompt() -> str:
-    """Build the system prompt used for requirement extraction."""
-    return load_system_prompt(PROMPT_FILES)
+def build_system_prompt(rag_context: str | None = None) -> str:
+    """Build the system prompt used for requirement extraction.
+
+    When rag_context is provided, it replaces the static example block.
+    """
+    base_prompt = load_system_prompt(BASE_PROMPT_FILES)
+
+    if rag_context:
+        return f"{base_prompt}\n\n{rag_context}"
+
+    return load_system_prompt(BASE_PROMPT_FILES + STATIC_EXAMPLE_FILES)
 
 
 def build_user_prompt(
@@ -42,19 +53,12 @@ def extract_requirements_json(
     if not model or not model.strip():
         raise ValueError("Model name must be provided and cannot be empty.")
 
-    system_prompt = build_system_prompt()
+    system_prompt = build_system_prompt(rag_context=rag_context)
     user_prompt = PromptBuilder(
         language=language,
         available_spaces=available_spaces,
         available_doors=available_doors,
     ).build(requirement_text)
-
-    if rag_context:
-        user_prompt = (
-            f"{rag_context}\n\n"
-            f"Now extract the following {language} specification:\n\n"
-            f"{user_prompt}"
-        )
 
     if validation_feedback:
         user_prompt += (

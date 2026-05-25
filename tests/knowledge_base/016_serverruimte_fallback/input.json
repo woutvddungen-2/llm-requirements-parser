@@ -1,0 +1,33 @@
+{
+  "requirement_text": "De serverruimte krijgt een oogscanner en een noodknop.",
+  "language": "Dutch",
+  "available_spaces": [
+    "Serverruimte",
+    "Hal",
+    "Kantoor",
+    "Vergaderruimte",
+    "Entree",
+    "Voordeur",
+    "Buiten"
+  ],
+  "available_doors": [
+    {
+      "door_id": "door_20",
+      "space_a": "Hal",
+      "space_b": "Kantoor",
+      "is_external": false
+    },
+    {
+      "door_id": "door_21",
+      "space_a": "Hal",
+      "space_b": "Vergaderruimte",
+      "is_external": false
+    },
+    {
+      "door_id": "door_22",
+      "space_a": "OUTSIDE",
+      "space_b": "Entree",
+      "is_external": true
+    }
+  ]
+}

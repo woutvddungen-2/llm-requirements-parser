@@ -1,0 +1,39 @@
+{
+  "requirement_text": "Alle buitendeuren en de deur van de entree naar de hal krijgen een kaartlezer.",
+  "language": "Dutch",
+  "available_spaces": [
+    "Voordeur",
+    "Achterdeur",
+    "Nooduitgang",
+    "Entree",
+    "Hal",
+    "Kantine",
+    "Buiten"
+  ],
+  "available_doors": [
+    {
+      "door_id": "door_90",
+      "space_a": "OUTSIDE",
+      "space_b": "Voordeur",
+      "is_external": true
+    },
+    {
+      "door_id": "door_91",
+      "space_a": "OUTSIDE",
+      "space_b": "Achterdeur",
+      "is_external": true
+    },
+    {
+      "door_id": "door_92",
+      "space_a": "OUTSIDE",
+      "space_b": "Nooduitgang",
+      "is_external": true
+    },
+    {
+      "door_id": "door_93",
+      "space_a": "Entree",
+      "space_b": "Hal",
+      "is_external": false
+    }
+  ]
+}

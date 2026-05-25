@@ -1,0 +1,24 @@
+{
+  "requirement_text": "De voordeur krijgt een noodknop aan beide zijden.",
+  "language": "Dutch",
+  "available_spaces": [
+    "Voordeur",
+    "Entree",
+    "Hal",
+    "Buiten"
+  ],
+  "available_doors": [
+    {
+      "door_id": "door_70",
+      "space_a": "OUTSIDE",
+      "space_b": "Voordeur",
+      "is_external": true
+    },
+    {
+      "door_id": "door_71",
+      "space_a": "Voordeur",
+      "space_b": "Hal",
+      "is_external": false
+    }
+  ]
+}

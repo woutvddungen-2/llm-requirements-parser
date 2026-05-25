@@ -1,123 +1,181 @@
-# Access Control Requirement Parser (Experiment)
+# LLM Requirements Parser
 
 ## Overview
 
-This project experiments with using an LLM to convert natural language specifications into structured access control requirements.
+This repository benchmarks LLMs on Dutch access-control requirement extraction.
 
-Input: plain text (client specification)
-Output: validated JSON (based on a strict schema)
+The pipeline is:
 
+`input.json` with requirement text + floorplan context -> prompt assembly -> LLM call -> JSON validation -> benchmark comparison
 
+The repo is intentionally experimental. It is used to compare model quality, prompt variants, and few-shot retrieval strategies.
 
-## How it works
+## What Changed This Month
 
-```
-Text → LLM → JSON → Pydantic validation
-```
+The repository moved from a simple text-only parser to a floorplan-aware benchmark harness.
 
-* The LLM extracts requirements
-* Output is validated against a Pydantic schema
-* Invalid output is rejected
-
-
-
-## Workflow (Notebooks)
-
-The main experimentation is done in notebooks.
-
-Typical flow:
-
-1. Open the notebook
-2. Load example input text
-3. Generate / load schema prompt
-4. Run LLM extraction
-5. Validate output using Pydantic
-
-
-
+- `input.json` is now the main input format for cases and knowledge-base examples.
+- Floorplan context is included in both benchmark cases and few-shot examples:
+  - `requirement_text`
+  - `available_spaces`
+  - `available_doors`
+- Prompt assembly was split into reusable pieces:
+  - `src/prompt_builder.py` builds the user prompt
+  - `src/parser.py` builds the system prompt and wires the extraction call
+- Few-shot examples are now dynamic:
+  - they come from `tests/knowledge_base/`
+  - they are retrieved by similarity on `requirement_text`
+  - they are injected into the system prompt, not the user prompt
+- The access-control prompt was tightened to better handle:
+  - `buitendeuren` vs `binnendeuren`
+  - `door_id` resolution
+  - fallback when no matching door is found
+- The knowledge base was expanded with more examples, including fallback cases where the door list is incomplete.
+- Benchmark output now records separate timings:
+  - LLM time
+  - few-shot setup time
+  - total wall-clock time
+- Few-shot embeddings are cached locally so xdist workers can reuse the cache instead of rebuilding it every run.
+- Hugging Face auth is supported through `HF_TOKEN` in `.env`.
 
 ## Project Structure
 
-```id="c4v2m1"
+```text
 .
-├── README.md                    # Project overview and usage
-├── convert_schema.py           # Generates schema files for LLM + validation
-├── example_diemen.txt          # Example input specification
-├── main.py                     # Simple entry point (non-notebook usage)
-├── requirements.txt            # Python dependencies
-│
-├── json/                       # Generated JSON schemas (validation/debugging)
-│   └── schema_access_control.json
-│
-├── notebooks/                  # Main experimentation environment
-│   └── 01_extraction_test.ipynb
-│
-├── prompts/                    # Modular LLM prompt components
-│   ├── system_core.txt         # Base system prompt (role + instructions)
-│   ├── formatting_rules.txt    # Output format constraints
-│   ├── normalization_rules.txt # Text normalization rules
-│   ├── conflict_rules.txt      # Conflict resolution logic
-│   │
-│   └── access_control/         # Domain-specific prompt components
+├── prompts/                     # System prompt fragments and domain-specific instructions
+│   ├── system_core.txt
+│   ├── logic_rules.txt
+│   └── access_control/
 │       ├── schema_access_control.txt
 │       ├── terminology_access_control.txt
 │       └── examples_access_control.txt
 │
-├── src/                        # Core logic
-│   ├── __init__.py
-│   ├── llm_client.py           # LLM interaction layer
-│   ├── parser.py               # Prompt assembly + parsing pipeline
-│   ├── schema.py               # Pydantic schema (source of truth)
-│   └── schema_rules.json       # Rules for schema → prompt conversion
+├── src/                         # Runtime code
+│   ├── llm_client.py            # Vendor routing and LLM call orchestration
+│   ├── parser.py                # Prompt assembly and extraction entrypoints
+│   ├── prompt_builder.py        # User prompt construction
+│   ├── few_shot.py              # Knowledge base loading, retrieval, and embedding cache
+│   ├── schema_access_control.py # Access-control schema
+│   └── llm_types.py             # Shared result types
 │
-└── tests/                      # (Future) test cases and validation
+├── tests/                       # Benchmark cases and pytest harness
+│   ├── cases/                   # Main benchmark cases
+│   ├── knowledge_base/          # Few-shot examples
+│   ├── conftest.py              # Pytest options and fixtures
+│   ├── helpers.py               # Input loading, validation, normalization
+│   ├── test_expected_output.py  # Main benchmark comparison test
+│   └── test_prompt_builder.py   # Prompt assembly unit tests
+│
+└── README.md
 ```
 
-## Notes on Structure
+## Input Format
 
-* **Notebooks-first workflow**
-  Experiments and development are primarily done in `notebooks/`.
+Benchmark cases and knowledge-base examples use `input.json` with this shape:
 
-* **Separation of concerns**
+```json
+{
+  "requirement_text": "De serverruimte krijgt een kaartlezer.",
+  "language": "Dutch",
+  "available_spaces": ["Serverruimte", "Hal", "Entree"],
+  "available_doors": [
+    {
+      "door_id": "door_01",
+      "space_a": "Hal",
+      "space_b": "Serverruimte",
+      "is_external": false
+    }
+  ]
+}
+```
 
-  * `schema.py` → structure & validation
-  * `schema_rules.json` → prompt behavior
-  * `convert_schema.py` → schema generation
-  * `parser.py` → runtime pipeline
+The benchmark still accepts legacy `input.txt` files during transition, but the JSON format is the preferred and current one.
 
-* **Prompt modularity**
-  Prompt is split into reusable layers:
+## Few-Shot Retrieval
 
-    * core behavior
-    * formatting
-    * normalization
-    * conflict handling
-    * domain-specific logic
+Few-shot examples are dynamic.
 
-## Usage
+- Similarity matching uses only `requirement_text`
+- The examples shown to the model include the full floorplan context
+- The examples are added to the system prompt
+- The benchmark keeps the production-style user prompt separate from retrieval examples
 
-### 1. Generate schema (when schema changes)
+The cached embeddings are written locally to:
+
+`.cache/few_shot_embeddings.json`
+
+That cache is reused across pytest-xdist workers.
+
+## Environment
+
+Create a `.env` file with the vendor keys you need.
+
+For few-shot embeddings, you can also set:
 
 ```bash
-python convert_schema.py
+HF_TOKEN=your_huggingface_token
 ```
 
-### 2. Run experiments
+The code maps `HF_TOKEN` to the Hugging Face auth environment expected by `sentence-transformers`.
 
-Open the notebooks and execute cells step-by-step.
+## Running Tests
 
+The main benchmark test is `tests/test_expected_output.py`.
 
+Run a single model:
 
-## Key files
+```bash
+pytest tests/test_expected_output.py --models openai:gpt-5.2 --use-few-shot standard -n auto
+```
 
-* `schema.py` → structure & validation
-* `schema_rules.json` → prompt behavior
-* `convert_schema.py` → generates LLM schema
-* `parser.py` → reusable parsing logic
+Run with few-shot examples:
 
+```bash
+pytest tests/test_expected_output.py --models openai:gpt-5.2 --use-few-shot few-shot -n auto
+```
+
+Run both modes:
+
+```bash
+pytest tests/test_expected_output.py --models openai:gpt-5.2 --use-few-shot both -n auto
+```
+
+Run one case:
+
+```bash
+pytest tests/test_expected_output.py -k 004_group_with_addition --models openai:gpt-5.2 --use-few-shot standard -n auto
+```
+
+Useful pytest options:
+
+- `-q` for quieter output
+- `-v` for verbose case names
+- `-n auto` for parallel execution
+- `--count 5` to repeat a case multiple times
+
+## Timing Fields
+
+Benchmark logs now record:
+
+- `duration_ms`: LLM call time only
+- `few_shot_setup_ms`: retrieval and context assembly time
+- `total_duration_ms`: full wall-clock time for the case
+
+That separation makes it easier to tell whether a slowdown comes from prompt prep, embedding/cache work, or the model call itself.
+
+## Prompt Design
+
+The prompt is modular and built from layered files in `prompts/`.
+
+Current behavior:
+
+- the system prompt contains the core instructions and, when enabled, the dynamic few-shot examples
+- the user prompt contains the requirement text and floorplan context
+- validation feedback is appended only when a retry is needed
 
 ## Notes
 
-* Schema generation is manual
-* Keep `schema_access_control.txt` in sync with schema changes
-* This repo is experimental and will evolve
+- This repo is optimized for comparison runs, not for production deployment.
+- The knowledge base is intentionally broader than the benchmark cases so few-shot retrieval stays useful without mirroring the tests too closely.
+- The few-shot cache is local only; it is not meant to be committed.
+

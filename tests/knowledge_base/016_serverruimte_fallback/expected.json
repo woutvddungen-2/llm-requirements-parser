@@ -1,0 +1,15 @@
+{
+  "system_type": "ACCESS_CONTROL",
+  "version": "1.0",
+  "requirements": {
+    "door_rules": [
+      {
+        "areas": ["Serverruimte"],
+        "reader_types": ["FACE_RECOGNITION"],
+        "emergency_button": "STANDALONE",
+        "description": "De serverruimte krijgt een oogscanner en een noodknop"
+      }
+    ],
+    "controller_rules": []
+  }
+}

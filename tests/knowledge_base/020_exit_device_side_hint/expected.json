@@ -1,0 +1,24 @@
+{
+  "system_type": "ACCESS_CONTROL",
+  "version": "1.0",
+  "requirements": {
+    "door_rules": [
+      {
+        "areas": [
+          "Hal"
+        ],
+        "connects_to_areas": [
+          "Kantine"
+        ],
+        "reader_types": [
+          "CARD"
+        ],
+        "exit_device": "PUSH_BUTTON",
+        "exit_device_side_hint": "SAME_AS_READER",
+        "description": "De deur van de kantine naar de hal krijgt een kaartlezer en een exit knop aan dezelfde zijde als de lezer",
+        "door_id": "door_60"
+      }
+    ],
+    "controller_rules": []
+  }
+}

@@ -6,6 +6,7 @@ Usage:
     pytest tests/ --models gemini --use-few-shot both --count 3 -n auto -v
 """
 
+from datetime import UTC, datetime
 import pytest
 from pathlib import Path
 
@@ -21,9 +22,9 @@ def pytest_addoption(parser):
     parser.addoption(
         "--use-few-shot",
         action="store",
-        default="standard",
-        choices=["standard", "few-shot", "both"],
-        help="Test methods: 'standard' (no few-shot), 'few-shot' (with few-shot examples), 'both' (default: standard)",
+        default="false",
+        choices=["false", "true", "both"],
+        help="Test methods: 'false' (no few-shot), 'true' (with few-shot examples), 'both' (default: standard)",
     )
 
 
@@ -46,10 +47,10 @@ def pytest_generate_tests(metafunc):
     if "use_few_shot" in metafunc.fixturenames:
         few_shot_option = metafunc.config.getoption("use_few_shot")
         
-        if few_shot_option == "standard":
+        if few_shot_option == "false":
             use_few_shot_values = [False]
             ids = ["no_few_shot"]
-        elif few_shot_option == "few-shot":
+        elif few_shot_option == "true":
             use_few_shot_values = [True]
             ids = ["with_few_shot"]
         elif few_shot_option == "both":
@@ -57,6 +58,41 @@ def pytest_generate_tests(metafunc):
             ids = ["no_few_shot", "with_few_shot"]
         
         metafunc.parametrize("use_few_shot", use_few_shot_values, ids=ids)
+
+
+def pytest_configure(config):
+    """Prime the few-shot embedding cache once in the controller process."""
+    if getattr(config, "workerinput", None) is not None:
+        return
+
+    from tests.result_logging import set_run_id
+
+    set_run_id(datetime.now(UTC).strftime("%Y-%m-%dT%H-%M-%SZ"))
+
+    if config.getoption("use_few_shot") == "false":
+        return
+
+    from pathlib import Path
+
+    from src.few_shot import create_embeddings, load_knowledge_base
+
+    kb_dir = Path("tests/knowledge_base")
+    if not kb_dir.exists():
+        return
+
+    knowledge_base = load_knowledge_base(kb_dir)
+    if knowledge_base:
+        create_embeddings(knowledge_base)
+
+
+def pytest_sessionfinish(session, exitstatus):
+    """Remove the shared run-id marker after the full session finishes."""
+    if getattr(session.config, "workerinput", None) is not None:
+        return
+
+    from tests.result_logging import clear_run_id
+
+    clear_run_id()
 
 
 @pytest.fixture(scope="session")

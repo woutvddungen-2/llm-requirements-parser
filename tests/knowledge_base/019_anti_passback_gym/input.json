@@ -1,0 +1,32 @@
+{
+  "requirement_text": "De sportzaal krijgt een kaartlezer met anti-passback.",
+  "language": "Dutch",
+  "available_spaces": [
+    "Sportzaal",
+    "Kleedruimte",
+    "Douche",
+    "Hal",
+    "Entree",
+    "Buiten"
+  ],
+  "available_doors": [
+    {
+      "door_id": "door_50",
+      "space_a": "Hal",
+      "space_b": "Sportzaal",
+      "is_external": false
+    },
+    {
+      "door_id": "door_51",
+      "space_a": "Hal",
+      "space_b": "Kleedruimte",
+      "is_external": false
+    },
+    {
+      "door_id": "door_52",
+      "space_a": "OUTSIDE",
+      "space_b": "Entree",
+      "is_external": true
+    }
+  ]
+}

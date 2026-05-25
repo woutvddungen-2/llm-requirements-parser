@@ -1,0 +1,29 @@
+{
+  "system_type": "ACCESS_CONTROL",
+  "version": "1.0",
+  "requirements": {
+    "door_rules": [
+      {
+        "areas": [
+          "Entree begane grond"
+        ],
+        "reader_types": [
+          "CARD"
+        ],
+        "description": "De entree op de begane grond krijgt een kaartlezer",
+        "door_id": "door_30"
+      },
+      {
+        "areas": [
+          "Entree eerste verdieping"
+        ],
+        "reader_types": [
+          "CARD"
+        ],
+        "description": "De entree op de eerste verdieping krijgt ook een kaartlezer",
+        "door_id": "door_31"
+      }
+    ],
+    "controller_rules": []
+  }
+}

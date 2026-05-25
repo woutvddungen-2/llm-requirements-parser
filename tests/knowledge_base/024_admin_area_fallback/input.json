@@ -1,0 +1,32 @@
+{
+  "requirement_text": "De administratie krijgt een kaartlezer.",
+  "language": "Dutch",
+  "available_spaces": [
+    "Administratie",
+    "Hal",
+    "Kantoor",
+    "Vergaderruimte",
+    "Entree",
+    "Buiten"
+  ],
+  "available_doors": [
+    {
+      "door_id": "door_100",
+      "space_a": "Hal",
+      "space_b": "Kantoor",
+      "is_external": false
+    },
+    {
+      "door_id": "door_101",
+      "space_a": "Hal",
+      "space_b": "Vergaderruimte",
+      "is_external": false
+    },
+    {
+      "door_id": "door_102",
+      "space_a": "OUTSIDE",
+      "space_b": "Entree",
+      "is_external": true
+    }
+  ]
+}

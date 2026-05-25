@@ -1,0 +1,14 @@
+{
+  "system_type": "ACCESS_CONTROL",
+  "version": "1.0",
+  "requirements": {
+    "door_rules": [
+      {
+        "areas": ["Berging"],
+        "lock_type": "MAGNETIC_LOCK",
+        "description": "De berging krijgt een magneetslot"
+      }
+    ],
+    "controller_rules": []
+  }
+}

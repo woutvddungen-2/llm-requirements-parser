@@ -22,3 +22,6 @@ Door resolution:
 - When multiple doors match the same requirement, emit one rule per door — each with its own `door_id` and identical configuration fields.
 - Always populate `areas` even when `door_id` is set. Never set `connects_to_areas` when `door_id` is known.
 - Only omit `door_id` when the door cannot be resolved from the available context. If no door in the list matches, still emit the rule without `door_id` — the door list may be incomplete.
+- For a given physical door_id, emit exactly one DoorRule. If later sentences add more properties for the same door, merge them into the same rule instead of creating a second rule.
+- If multiple clauses mention the same door at different positions in the text, keep one consolidated rule and union all explicitly stated fields for that door.
+- Do not split one physical door into separate rules just because the text mentions readers, intercom, locks, sensors, or emergency hardware in different sentences.

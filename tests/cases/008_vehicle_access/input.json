@@ -3,32 +3,32 @@
   "available_spaces": [
     "-1.01 Fietsenstalling 1-10",
     "-1.02 Fietsenstalling 11-20",
-    "Garage",
-    "Trappenhal"
+    "-1.10 Parkeergarage",
+    "-1.21 Trappenhal"
   ],
   "available_doors": [
     {
       "door_id": "door_04",
       "space_a": "-1.01 Fietsenstalling 1-10",
-      "space_b": "Garage",
+      "space_b": "-1.10 Parkeergarage",
       "is_external": false
     },
     {
       "door_id": "door_05",
       "space_a": "-1.02 Fietsenstalling 11-20",
-      "space_b": "Garage",
+      "space_b": "-1.10 Parkeergarage",
       "is_external": false
     },
     {
       "door_id": "door_06",
-      "space_a": "Trappenhal",
-      "space_b": "Garage",
+      "space_a": "-1.21 Trappenhal",
+      "space_b": "-1.10 Parkeergarage",
       "is_external": false
     },
     {
       "door_id": "door_07",
       "space_a": "OUTSIDE",
-      "space_b": "Garage",
+      "space_b": "-1.10 Parkeergarage",
       "is_external": true
     }
   ]

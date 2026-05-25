@@ -24,8 +24,10 @@ Lock:
 motorslot                → MOTORIZED_LOCK
 magneet(slot)            → MAGNETIC_LOCK
 sluitplaat               → ELECTRIC_STRIKE_PLATE
-elektrisch slot          → SOLENOID_LOCK
+elektrisch slot / elektrische sloten → SOLENOID_LOCK
 geen slot                → NONE
+sluit-mechanisme         → OTHER when no specific lock type is named
+sluit- en alarmeringsmechanisme → OTHER for the lock part; on a concrete access door also emit door_sensor = true for the alarm/contact part
 
 Door closer:
 deurdranger              → MECHANICAL
@@ -38,9 +40,17 @@ elleboog                 → ELBOW_ACTUATED
 uitrijlus                → GROUND_LOOP
 bewegingssensor          → MOTION_SENSOR
 Never use STANDALONE or INTRUSION for exit_device.
+Never map GfS EN Exit controlsysteem, GfS TA alarmsysteem, sluit- en alarmeringsmechanisme, or other generic alarm/escape-control wording to exit_device unless the text explicitly names one of the supported exit devices above.
 
 Emergency button:
 noodknop                           → STANDALONE
 groene handmelder / groene knop / groene melder → STANDALONE
 gekoppeld aan inbraak              → INTRUSION
 Never use PUSH_BUTTON, ELBOW_ACTUATED, GROUND_LOOP, or MOTION_SENSOR for emergency_button.
+
+Door sensor / contact:
+deurcontact / magneetcontact / contact op de deur → door_sensor = true
+alarmeringsmechanisme when it refers to a contact or alarm contact on the door → door_sensor = true
+signaleringssysteem dat een signaal afgeeft wanneer een deur wordt geopend → door_sensor = true
+signaal bij openen / openingssignalering / deur geopend signalering → door_sensor = true
+veiligheidsensor / veiligheidsensors / vingerbeveiliging → do not map to door_sensor; these are safety devices outside this schema unless another supported field is explicitly named

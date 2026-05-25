@@ -1,0 +1,30 @@
+{
+  "system_type": "ACCESS_CONTROL",
+  "version": "1.0",
+  "requirements": {
+    "door_rules": [
+      {
+        "areas": [
+          "Receptie"
+        ],
+        "reader_types": [
+          "CARD"
+        ],
+        "emergency_button": "STANDALONE",
+        "description": "De receptie krijgt een kaartlezer en een groene knop",
+        "door_id": "door_02"
+      },
+      {
+        "areas": [
+          "Bezoekersingang"
+        ],
+        "reader_types": [
+          "CARD"
+        ],
+        "description": "De bezoekersingang krijgt een kaartlezer",
+        "door_id": "door_03"
+      }
+    ],
+    "controller_rules": []
+  }
+}

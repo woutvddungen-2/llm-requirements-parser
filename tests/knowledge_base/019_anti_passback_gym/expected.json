@@ -1,0 +1,15 @@
+{
+  "system_type": "ACCESS_CONTROL",
+  "version": "1.0",
+  "requirements": {
+    "door_rules": [
+      {
+        "areas": ["Sportzaal"],
+        "reader_types": ["CARD"],
+        "anti_passback": true,
+        "description": "De sportzaal krijgt een kaartlezer met anti-passback"
+      }
+    ],
+    "controller_rules": []
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "requirement_text": "De entree op de begane grond krijgt een kaartlezer. De entree op de eerste verdieping krijgt ook een kaartlezer.",
+  "language": "Dutch",
+  "available_spaces": [
+    "Entree begane grond",
+    "Entree eerste verdieping",
+    "Hal begane grond",
+    "Hal eerste verdieping",
+    "Buiten",
+    "Voordeur",
+    "Achterdeur"
+  ],
+  "available_doors": [
+    {
+      "door_id": "door_30",
+      "space_a": "OUTSIDE",
+      "space_b": "Entree begane grond",
+      "is_external": true
+    },
+    {
+      "door_id": "door_31",
+      "space_a": "OUTSIDE",
+      "space_b": "Entree eerste verdieping",
+      "is_external": true
+    },
+    {
+      "door_id": "door_32",
+      "space_a": "Entree begane grond",
+      "space_b": "Hal begane grond",
+      "is_external": false
+    },
+    {
+      "door_id": "door_33",
+      "space_a": "Entree eerste verdieping",
+      "space_b": "Hal eerste verdieping",
+      "is_external": false
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "system_type": "ACCESS_CONTROL",
+  "version": "1.0",
+  "requirements": {
+    "door_rules": [
+      {
+        "areas": [
+          "Voordeur"
+        ],
+        "emergency_button": "STANDALONE",
+        "emergency_button_side_hint": "BOTH",
+        "description": "De voordeur krijgt een noodknop aan beide zijden",
+        "door_id": "door_70"
+      }
+    ],
+    "controller_rules": []
+  }
+}

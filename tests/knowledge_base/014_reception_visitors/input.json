@@ -1,0 +1,51 @@
+{
+  "requirement_text": "De deur naar de receptie krijgt een groene knop, voor noodgevallen kan deze deur geopend worden met een groene handmelder. De bezoekersingang krijgt alleen een kaartlezer.",
+  "language": "Dutch",
+  "available_spaces": [
+    "Voordeur",
+    "Achterdeur",
+    "Nooduitgang",
+    "Entree",
+    "Hal",
+    "Kantine",
+    "Kantoor",
+    "Vergaderruimte",
+    "Directiekantoor",
+    "Serverruimte",
+    "Receptie",
+    "Bezoekersingang",
+    "Geldkamer",
+    "Laboratorium",
+    "Parkeergarage",
+    "VIP kantoor",
+    "VIP parkeerplaats slagboom",
+    "Fietsenstalling",
+    "Buiten"
+  ],
+  "available_doors": [
+    {
+      "door_id": "door_01",
+      "space_a": "OUTSIDE",
+      "space_b": "Entree",
+      "is_external": true
+    },
+    {
+      "door_id": "door_02",
+      "space_a": "Entree",
+      "space_b": "Receptie",
+      "is_external": false
+    },
+    {
+      "door_id": "door_03",
+      "space_a": "Entree",
+      "space_b": "Bezoekersingang",
+      "is_external": false
+    },
+    {
+      "door_id": "door_04",
+      "space_a": "Entree",
+      "space_b": "Hal",
+      "is_external": false
+    }
+  ]
+}
