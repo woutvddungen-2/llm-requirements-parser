@@ -1,0 +1,115 @@
+{
+  "pdf_path": "/mnt/c/datasets/enginize_root/spec_documents/Rochdale.pdf",
+  "language": "Dutch",
+  "available_spaces": [
+    "OUTSIDE",
+    "Entree",
+    "Hal",
+    "Gemeenschappelijk",
+    "Berging",
+    "Fietsenstalling",
+    "Studio A",
+    "Studio A - Slaapkamer",
+    "Studio A - Badkamer",
+    "Studio B",
+    "Studio B - Slaapkamer",
+    "Studio B - Badkamer",
+    "Studio C",
+    "Studio C - Slaapkamer",
+    "Studio C - Badkamer",
+    "Technische Ruimte",
+    "Lift"
+  ],
+  "available_doors": [
+    {
+      "door_id": "main_entry",
+      "space_a": "OUTSIDE",
+      "space_b": "Entree",
+      "is_external": true
+    },
+    {
+      "door_id": "entree_to_hall",
+      "space_a": "Entree",
+      "space_b": "Hal",
+      "is_external": false
+    },
+    {
+      "door_id": "hall_to_common",
+      "space_a": "Hal",
+      "space_b": "Gemeenschappelijk",
+      "is_external": false
+    },
+    {
+      "door_id": "studio_a_entry",
+      "space_a": "Gemeenschappelijk",
+      "space_b": "Studio A",
+      "is_external": false
+    },
+    {
+      "door_id": "studio_a_bedroom",
+      "space_a": "Studio A",
+      "space_b": "Studio A - Slaapkamer",
+      "is_external": false
+    },
+    {
+      "door_id": "studio_a_bathroom",
+      "space_a": "Studio A",
+      "space_b": "Studio A - Badkamer",
+      "is_external": false
+    },
+    {
+      "door_id": "studio_b_entry",
+      "space_a": "Gemeenschappelijk",
+      "space_b": "Studio B",
+      "is_external": false
+    },
+    {
+      "door_id": "studio_b_bedroom",
+      "space_a": "Studio B",
+      "space_b": "Studio B - Slaapkamer",
+      "is_external": false
+    },
+    {
+      "door_id": "studio_b_bathroom",
+      "space_a": "Studio B",
+      "space_b": "Studio B - Badkamer",
+      "is_external": false
+    },
+    {
+      "door_id": "studio_c_entry",
+      "space_a": "Gemeenschappelijk",
+      "space_b": "Studio C",
+      "is_external": false
+    },
+    {
+      "door_id": "studio_c_bedroom",
+      "space_a": "Studio C",
+      "space_b": "Studio C - Slaapkamer",
+      "is_external": false
+    },
+    {
+      "door_id": "studio_c_bathroom",
+      "space_a": "Studio C",
+      "space_b": "Studio C - Badkamer",
+      "is_external": false
+    },
+    {
+      "door_id": "common_to_storage",
+      "space_a": "Gemeenschappelijk",
+      "space_b": "Berging",
+      "is_external": false
+    },
+    {
+      "door_id": "common_to_bike_storage",
+      "space_a": "Gemeenschappelijk",
+      "space_b": "Fietsenstalling",
+      "is_external": false
+    },
+    {
+      "door_id": "technical_room_entry",
+      "space_a": "Hal",
+      "space_b": "Technische Ruimte",
+      "is_external": false
+    }
+  ]
+}

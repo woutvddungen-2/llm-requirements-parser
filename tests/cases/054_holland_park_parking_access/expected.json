@@ -1,0 +1,25 @@
+{
+  "system_type": "ACCESS_CONTROL",
+  "version": "1.0",
+  "requirements": {
+    "door_rules": [
+      {
+        "areas": ["Fietsenstalling"],
+        "door_id": "fietsenstalling_entry",
+        "reader_types": ["CARD"],
+        "exit_device": "ELBOW_ACTUATED",
+        "description": "Hoofdentree van de fietsenstalling met tagtoegang voor bewoners en elleboogschakelaar"
+      },
+      {
+        "areas": ["Parkeergarage"],
+        "connects_to_areas": ["Algemeen"],
+        "door_id": "parking_entry",
+        "reader_types": ["CARD"],
+        "lock_type": "SOLENOID_LOCK",
+        "emergency_button": "STANDALONE",
+        "description": "Parkeergarage toegang met elektronisch slot, kaartlezer voor ingang, en groene noodknop voor evacuatie"
+      }
+    ],
+    "controller_rules": []
+  }
+}

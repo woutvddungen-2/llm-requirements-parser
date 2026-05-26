@@ -1,0 +1,19 @@
+{
+  "system_type": "ACCESS_CONTROL",
+  "version": "1.0",
+  "requirements": {
+    "door_rules": [
+      {
+        "areas": ["Entree"],
+        "connects_to_areas": ["OUTSIDE"],
+        "door_id": "main_entry",
+        "reader_types": ["INTERCOM", "CARD"],
+        "lock_type": "ELECTRIC_STRIKE_PLATE",
+        "door_closer": "ELECTRIC",
+        "exit_device": "ELBOW_ACTUATED",
+        "description": "Hoofdentree met video-intercom voor bezoekers en tag-/paslezer voor bewoners, met elektrische sluitplaat, elektrische deurdranger en elleboogschakelaar"
+      }
+    ],
+    "controller_rules": []
+  }
+}
