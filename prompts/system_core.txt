@@ -47,8 +47,31 @@ Visitor vs. Resident Access Separation - BUT same physical door:
 - If DIFFERENT doors: "Intercom for visitors at main entry" + "Card readers for residents at common area" → two separate rules.
 - Use available_doors and explicit room names to determine if "toegangsdeur", "entree", "voordeur" refer to the same physical boundary or different ones within the same subsection.
 
+CRITICAL: Electronic vs. Mechanical Access
+- This system ONLY extracts electronic access-control systems (card readers, intercom, badge readers, keypads, magnetic locks, electric strikes, door openers, solenoid locks, etc.).
+- Mechanical keys (sleutels, cilinder, handsleutel) are NOT electronic access control. Do NOT create door_rules for doors described as key-only.
+- When a spec describes an entrance with electronic access (e.g., intercom for visitors, card reader for residents) and then mentions that individual unit/studio/apartment doors use keys only, do NOT create rules for those unit doors.
+- Example: "Video-intercom voor bezoekers bij de entree" + "Kaartlezer voor bewoners bij de entree" + "Sleutels voor ieder studio" → Create ONE rule for the SHARED entrance door (main_entry) with INTERCOM + CARD. Skip the studio doors (keys are not electronic).
+- If the text says "De voordeur van ieder studio zal door middel van sleutels kunnen worden geopend", do NOT infer separate electronic access-control doors for those studios.
+
 Lock type inference prevention:
 - Generic component mentions (e.g., "Deuropenerinstallatie" listed as a standalone component) that are NOT explicitly tied to a specific door must NOT generate lock_type fields.
-- Only set lock_type when a lock or door opener is explicitly assigned to a named door in context.
-- Example: "Deuropenerinstallatie, fabricaat Assa Abloy" (mentioned alone) → OMIT lock_type entirely.
-- Example: "De serverruimte krijgt een magneetslot" (explicitly named door) → lock_type: MAGNETIC_LOCK.
+- CRITICAL: NEVER set lock_type for a door based ONLY on vague terms like "elektronisch sluitsysteem" (electronic system) or "elektronische deur" (electronic door).
+- When text says "elektronisch slot" (electronic lock) or "elektronische slot" in the context of a specific door access requirement (NOT in a generic inventory), this CAN be mapped to lock_type: SOLENOID_LOCK.
+- When text says "elektronisch sluitsysteem" (electronic locking system) or "elektronische deurbesturing" (electronic door control system) generically, do NOT infer lock_type; omit it entirely.
+- ONLY set lock_type when the text explicitly NAMES a concrete mechanism: "magneetslot" (MAGNETIC_LOCK), "grendel" (SOLENOID_LOCK), "sluitplaat" (ELECTRIC_STRIKE_PLATE), etc.
+- Example: "De deur krijgt een elektronisch sluitsysteem" → OMIT lock_type entirely.
+- Example: "De deur is voorzien van een elektronisch slot" (in access requirement) → lock_type: SOLENOID_LOCK.
+- Example: "De serverruimte krijgt een magneetslot" → lock_type: MAGNETIC_LOCK.
+
+Inventory vs. Specification Distinction:
+- Component lists and inventory sections (e.g., "Elektrische deuren", "Intercom installatie", "Toegangscontrole systeem") are often generic mentions to allocate provisioning responsibility, NOT explicit access-control requirements.
+- Do NOT create a door_rule just because a component is mentioned in inventory. A door_rule requires BOTH: (1) a specific door target, AND (2) an explicit access-control property configured for that door.
+- Example: A section listing "Elektrische deuren hoofdentree" (electric main doors) in a general provisions list does NOT create a rule unless the text explicitly describes access control configuration for the main entry door.
+- Example: A list mentioning "Intercom installatie" and "Videofoon" does NOT create separate rules; extract only where the text explicitly configures intercom/video for a named door or space.
+
+Intercom and Multi-Component Placement Lists:
+- When a spec lists intercom positions (e.g., "intercom in entry, in closed section, in open section") WITHOUT explicitly assigning each to a specific door_id, treat the list as CONTEXT for grouping with other components, not as separate door rules.
+- Combine components that serve the same physical boundary: if the text says "entry gets card readers and intercom", emit ONE rule with both CARD and INTERCOM, not separate rules.
+- Only emit separate rules when the text explicitly creates a distinct access requirement: e.g., "entry has intercom for visitors; the barrier door to the closed section has a separate intercom for staff."
+- When component placement refers to door associations via "next to" or "adjacent to" language (e.g., "intercom naast de abonnementdeur"), use the explicit door names and door-mapping to resolve the correct door_id, not inferred/nearby doors.

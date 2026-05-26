@@ -200,13 +200,13 @@ Output:
   }
 }
 
-Key extraction rules demonstrated:
+Key extraction rules demonstrated across examples:
 - "code-scroll panelen" is UI interface for intercom, NOT a CODE reader type
-- "Bezoekers intercom" (visitor access) → external door (OUTSIDE connection)
-- "Bewoners kaartlezers" (resident access) → internal door (common areas)
-- NO lock_type inferred from reader types (kaartlezers do NOT imply solenoid lock unless explicitly stated)
-- NO lock_type from generic component mentions (e.g., "Deuropenerinstallatie") unless tied to a specific door
-- Separate rules created for different user groups, not merged into one door
+- Intercom placement lists do NOT create separate rules per position; when one position is at main entrance that later gets card readers, MERGE into ONE rule with both reader types
+- "naast de [door_name]" (next to [door_name]) in placement text takes precedence over space names mentioned in same sentence
+- Do NOT infer access-control rules from generic inventory mentions (e.g., "Elektrische deuren hoofdentree") unless explicit access-control properties are configured
+- NO lock_type inferred from reader types, generic component mentions, or vague terms like "elektronisch sluitsysteem"
+- Do NOT create rules for intermediate spaces unless explicitly described with access-control properties
 
 CRITICAL OUTPUT RULE:
 Output RAW JSON only.

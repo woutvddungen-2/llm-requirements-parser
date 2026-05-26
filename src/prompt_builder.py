@@ -109,7 +109,9 @@ class PromptBuilder:
         if residential_unit_doors:
             hints += (
                 f"- Individual unit doors: {'; '.join(residential_unit_doors)}\n"
-                "- If the text says individual units open with ordinary keys, do not place building-wide tag/intercom hardware on these unit doors.\n"
+                "- CRITICAL: If the text says individual units open with mechanical keys (sleutels, cilinder) or ordinary locks, DO NOT create access-control rules for these unit doors.\n"
+                "- This system ONLY extracts electronic access-control systems (card readers, intercom, badge readers, electric locks, etc.). Mechanical keys are not electronic access control.\n"
+                "- If the specification has a main/shared entrance with electronic access (e.g., intercom for visitors, card for residents) AND individual unit doors with keys, extract ONLY the main entrance rule.\n"
             )
         return hints
 

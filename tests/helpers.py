@@ -75,12 +75,18 @@ def _load_pdf_backed_case_input(
     from src.page_finding import build_requirement_text_from_pages, find_relevant_pages
 
     started = perf_counter()
+    # For category strategy, use dynamic thresholds by default (None)
+    # Only use fixed threshold if explicitly provided in input
+    min_score = None
+    if "min_meaningful_score" in payload:
+        min_score = int(payload["min_meaningful_score"])
+
     selection = find_relevant_pages(
         pdf_path=pdf_path,
         strategy=page_finder_strategy,
         model=page_finder_model or payload.get("page_finder_model"),
         category=payload.get("page_finder_category", "ACCESS"),
-        contamination_threshold=float(payload.get("page_finder_contamination_threshold", 0.25)),
+        min_meaningful_score=min_score,
     )
 
     # Use extracted content if available (category-based), otherwise build from page selection

@@ -11,10 +11,16 @@ from src.llm_types import LLMResult
 from src.page_finding_ac_config import (
     AC_KEYWORDS,
     AC_REGEX_PATTERNS,
+    CATEGORY_CLUSTER_KEEP_RATIO,
+    CATEGORY_HIGH_SCORE_MULTIPLIER,
+    CATEGORY_PAGE_SCORE_MAX,
+    CATEGORY_PAGE_SCORE_MIN,
+    CATEGORY_PAGE_SCORE_PERCENTILE,
     HIGH_SCORE_THRESHOLD,
     NEIGHBOR_THRESHOLD,
     PAGE_FINDER_PROMPT,
     PAGE_FINDER_SYSTEM_PROMPT,
+    REGEX_CLUSTER_KEEP_RATIO,
     REGEX_HIGH_SCORE_THRESHOLD,
     REGEX_NEIGHBOR_THRESHOLD,
     REGEX_SCORE_THRESHOLD,
@@ -179,63 +185,141 @@ def _score_text_on_categories(text: str) -> dict[str, int]:
     return scores
 
 
-def extract_content_by_category(
+def extract_content_by_categories(
     pdf_path: str | Path,
-    target_category: str = "ACCESS",
-    contamination_threshold: float = 0.25,
-) -> tuple[str, dict[int, PageCategoryScores]]:
-    """Extract clean content for a specific category from a PDF.
+    target_categories: list[str] | None = None,
+    page_score_threshold: int | None = None,
+    chunk_score_threshold: int | None = None,
+    use_dynamic_thresholds: bool = True,
+) -> tuple[dict[str, str], dict[int, PageCategoryScores], dict[str, list[int]]]:
+    """Extract content by scoring at chunk level with optional dynamic thresholds.
+
+    Algorithm:
+    1. Score all pages for all categories
+    2. (Optional) Compute dynamic thresholds based on score distribution
+    3. Find pages with >= threshold for any target category
+    4. For each qualifying page, extract paragraphs as chunks
+    5. Score each chunk on all categories
+    6. Include chunk if it scores >= chunk_score_threshold for any target category
 
     Args:
         pdf_path: Path to PDF
-        target_category: Which category to extract (e.g., "ACCESS")
-        contamination_threshold: If other categories score > this fraction of target,
-                                 reject the paragraph (0.25 = 25%)
+        target_categories: List of categories to extract (e.g., ["ACCESS", "HVAC"])
+                          Defaults to ["ACCESS"]
+        page_score_threshold: Minimum page score to consider page relevant.
+                             If None and use_dynamic_thresholds=True, computed from median.
+                             Otherwise defaults to 5.
+        chunk_score_threshold: Minimum chunk score to include.
+                              If None, defaults to page_score_threshold // 2
+        use_dynamic_thresholds: If True, compute thresholds from score distribution.
+                               Adapts extraction to document characteristics.
 
     Returns:
-        (clean_content_text, page_category_scores_for_debugging)
-
-    The algorithm:
-    1. Score every page on all categories
-    2. For pure pages (target dominates), include all content
-    3. For mixed pages, split into paragraphs and include only clean ones
-    4. A paragraph is clean if other categories < 25% of target category score
+        (dict[category_name] -> extracted_text, page_category_scores_for_debugging)
     """
+    import statistics
+
+    if target_categories is None:
+        target_categories = ["ACCESS"]
+
     page_texts = load_pdf_page_texts(pdf_path)
     page_scores = score_pages_by_category(page_texts)
 
-    content_segments = []
+    # Compute dynamic thresholds if requested
+    if use_dynamic_thresholds and page_score_threshold is None:
+        # For each target category, analyze the score distribution
+        # Use the first target category to set page threshold
+        primary_category = target_categories[0]
+        category_scores = [
+            cs.scores.get(primary_category, 0)
+            for cs in page_scores.values()
+        ]
 
-    for page_num in sorted(page_texts.keys()):
+        # Filter out zero scores (pages with no relevant content)
+        nonzero_scores = [s for s in category_scores if s > 0]
+
+        if nonzero_scores:
+            # Use a stricter percentile so broad inventory pages are less likely to
+            # qualify than the dense access-control cluster we actually want.
+            sorted_scores = sorted(nonzero_scores)
+            percentile_idx = min(
+                len(sorted_scores) - 1,
+                int(len(sorted_scores) * CATEGORY_PAGE_SCORE_PERCENTILE),
+            )
+            percentile_score = sorted_scores[percentile_idx]
+            page_score_threshold = max(
+                CATEGORY_PAGE_SCORE_MIN,
+                min(int(percentile_score), CATEGORY_PAGE_SCORE_MAX),
+            )
+        else:
+            page_score_threshold = 5
+    elif page_score_threshold is None:
+        page_score_threshold = 5
+
+    if chunk_score_threshold is None:
+        chunk_score_threshold = max(1, page_score_threshold // 2)
+
+    # Initialize buffers for each category
+    buffers = {cat: [] for cat in target_categories}
+    selected_pages_by_category: dict[str, list[int]] = {}
+
+    pages_to_process = set()
+    for cat in target_categories:
+        scores_for_cat = {
+            page_num: page_cs.scores.get(cat, 0)
+            for page_num, page_cs in page_scores.items()
+        }
+        relevant_pages, _, _ = _find_from_scores(
+            scores_for_cat,
+            score_threshold=page_score_threshold,
+            neighbor_threshold=max(1, page_score_threshold // 3),
+            high_score_threshold=max(
+                page_score_threshold + 1,
+                int(page_score_threshold * CATEGORY_HIGH_SCORE_MULTIPLIER),
+            ),
+        )
+        relevant_pages = _prune_to_dominant_clusters(
+            relevant_pages,
+            scores_for_cat,
+            keep_ratio=CATEGORY_CLUSTER_KEEP_RATIO,
+        )
+        selected_pages_by_category[cat] = relevant_pages
+        pages_to_process.update(relevant_pages)
+
+    # Track chunks we've seen to avoid duplicates across pages
+    seen_chunks = {cat: set() for cat in target_categories}
+
+    for page_num in sorted(pages_to_process):
         page_text = page_texts[page_num]
-        page_cs = page_scores[page_num]
 
-        target_score = page_cs.scores.get(target_category, 0)
-        other_scores = [s for cat, s in page_cs.scores.items() if cat != target_category]
-        max_other = max(other_scores) if other_scores else 0
+        # Extract chunks from this page
+        chunks = _extract_paragraphs(page_text)
 
-        # Pure page: target dominates significantly
-        if max_other < target_score * contamination_threshold:
-            content_segments.append(page_text)
-            continue
+        for chunk in chunks:
+            if len(chunk.strip()) < 20:
+                continue
 
-        # Mixed page: extract paragraphs and filter
-        if target_score > 0:
-            paragraphs = _extract_paragraphs(page_text)
-            for para in paragraphs:
-                para_scores = _score_text_on_categories(para)
-                para_target = para_scores.get(target_category, 0)
-                para_others = [s for cat, s in para_scores.items() if cat != target_category]
-                para_max_other = max(para_others) if para_others else 0
+            # Score this chunk on all categories
+            chunk_scores = _score_text_on_categories(chunk)
 
-                # Include if paragraph is clean (target dominates)
-                if para_target > 0 and para_max_other < para_target * contamination_threshold:
-                    content_segments.append(para)
+            # Add chunk to each category buffer if it scores high enough
+            for cat in target_categories:
+                if chunk_scores.get(cat, 0) >= chunk_score_threshold:
+                    if cat == "ACCESS" and not _contains_actionable_access_sentence(chunk):
+                        continue
+                    # Use chunk text as dedup key (avoid adding same chunk twice)
+                    chunk_key = chunk.strip()
+                    if chunk_key not in seen_chunks[cat]:
+                        seen_chunks[cat].add(chunk_key)
+                        buffers[cat].append(chunk)
 
-    # Concatenate all clean segments
-    clean_content = "\n\n".join(content_segments)
+    # Join all segments for each category
+    result = {
+        cat: "\n\n".join(buffers[cat])
+        for cat in target_categories
+    }
 
-    return clean_content, page_scores
+    return result, page_scores, selected_pages_by_category
 
 
 def find_relevant_pages(
@@ -243,9 +327,15 @@ def find_relevant_pages(
     strategy: str,
     model: str | None = None,
     category: str = "ACCESS",
-    contamination_threshold: float = 0.25,
+    min_meaningful_score: int | None = None,
 ) -> PageSelection:
-    """Select relevant access-control pages using one explicit strategy."""
+    """Select relevant access-control pages using one explicit strategy.
+
+    Args:
+        min_meaningful_score: For category strategy, minimum page score threshold.
+                             If None, uses dynamic threshold based on document's score distribution.
+                             If provided, uses fixed threshold for all documents.
+    """
     if strategy not in PAGE_FINDER_STRATEGIES:
         raise ValueError(
             f"Unknown page-finder strategy '{strategy}'. "
@@ -302,6 +392,11 @@ def find_relevant_pages(
             REGEX_NEIGHBOR_THRESHOLD,
             REGEX_HIGH_SCORE_THRESHOLD,
         )
+        relevant_pages = _prune_to_dominant_clusters(
+            relevant_pages,
+            regex_scores,
+            keep_ratio=REGEX_CLUSTER_KEEP_RATIO,
+        )
         if relevant_pages:
             return PageSelection(
                 method="Regex scoring",
@@ -350,21 +445,26 @@ def find_relevant_pages(
         raise ValueError(f"No relevant pages found via hybrid scoring for {pdf_path}.")
 
     if strategy == "category":
-        extracted_content, category_scores = extract_content_by_category(
+        # Use dynamic thresholds by default, or fixed threshold if explicitly provided
+        use_dynamic = min_meaningful_score is None
+        content_buffers, category_scores, selected_pages = extract_content_by_categories(
             pdf_path,
-            target_category=category,
-            contamination_threshold=contamination_threshold,
+            target_categories=[category],
+            page_score_threshold=min_meaningful_score,
+            use_dynamic_thresholds=use_dynamic,
         )
-        if extracted_content.strip():
+        extracted_content = content_buffers.get(category, "").strip()
+        if extracted_content:
+            threshold_info = "dynamic" if use_dynamic else f"fixed={min_meaningful_score}"
             return PageSelection(
-                method=f"Category-based content extraction ({category}, contamination_threshold={contamination_threshold})",
-                relevant_pages=[],  # Not used for content-based extraction
+                method=f"Category-based extraction ({category}, {threshold_info})",
+                relevant_pages=selected_pages.get(category, []),
                 page_scores={},
                 page_texts=page_texts,
                 category_scores=category_scores,
                 extracted_content=extracted_content,
             )
-        raise ValueError(f"No clean {category} content found via category filtering for {pdf_path}.")
+        raise ValueError(f"No {category} content found via category extraction for {pdf_path}.")
 
     if not model:
         raise ValueError(
@@ -523,6 +623,17 @@ def _contains_actionable_door_sentence(text: str) -> bool:
     patterns = (
         r"\bdeur(?:en)?\b.{0,80}\b(wordt|worden|zal|zullen|dient|dienen|voorzien|geplaatst|gerealiseerd|geopend|ontgrendeld)\b",
         r"\b(kaartlezers?|paslezers?|intercom|videofoon|handmelder|groene melder|elleboogschakelaar|elektrisch slot|sluitsysteem)\b.{0,80}\b(wordt|worden|zal|zullen|dient|dienen|voorzien|geplaatst|gerealiseerd|geopend|ontgrendeld)\b",
+    )
+    return any(re.search(pattern, text, re.IGNORECASE | re.DOTALL) for pattern in patterns)
+
+
+def _contains_actionable_access_sentence(text: str) -> bool:
+    if _contains_actionable_door_sentence(text):
+        return True
+
+    patterns = (
+        r"\b(toegangscontrolecentrales?|kaartlezers?|paslezers?|intercom|videofoon|deurstandmelders?|deurcontacten?|elektrische sloten|groene melder|handmelder|elleboogschakelaar)\b.{0,100}\b(wordt|worden|zal|zullen|dient|dienen|voorzien|geplaatst|gerealiseerd|aangesloten|doorverbonden|gekoppeld|aangebracht)\b",
+        r"\b(wordt|worden|zal|zullen|dient|dienen|voorzien|geplaatst|gerealiseerd|aangesloten|doorverbonden|gekoppeld|aangebracht)\b.{0,100}\b(toegangscontrolecentrales?|kaartlezers?|paslezers?|intercom|videofoon|deurstandmelders?|deurcontacten?|elektrische sloten|groene melder|handmelder|elleboogschakelaar)\b",
     )
     return any(re.search(pattern, text, re.IGNORECASE | re.DOTALL) for pattern in patterns)
 
@@ -855,5 +966,4 @@ def _find_via_llm(
         **result.__dict__,
         page_numbers=[int(p) for p in page_numbers],
     )
-
 

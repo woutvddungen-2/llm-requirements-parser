@@ -1,6 +1,7 @@
 import pytest
 
 from src.page_finding import (
+    _contains_actionable_access_sentence,
     _extract_relevant_excerpt,
     _find_from_scores,
     _find_hybrid_pages,
@@ -144,3 +145,40 @@ def test_find_hybrid_pages_prefers_dominant_overlap_cluster():
     assert relevant == [86, 87]
     assert primary == [69, 86]
     assert neighbors == [87]
+
+
+def test_contains_actionable_access_sentence_rejects_inventory_but_keeps_requirements():
+    inventory = "Videofoon-/intercom installatie\nToegangscontrole parkeergarage\nToegangscontrolesysteem fietsenstalling"
+    requirement = (
+        "De deuren tussen de algemene verkeersruimten en de parkeergarage zijn voorzien van een "
+        "elektronisch sluitsysteem en naast de deur wordt een kaartlezer geplaatst."
+    )
+
+    assert _contains_actionable_access_sentence(inventory) is False
+    assert _contains_actionable_access_sentence(requirement) is True
+
+
+def test_find_from_scores_then_cluster_prune_prefers_dense_access_block():
+    page_scores = {
+        68: 19,
+        69: 62,
+        81: 40,
+        82: 40,
+        83: 19,
+        86: 128,
+        87: 10,
+        88: 27,
+    }
+
+    relevant, _, _ = _find_from_scores(
+        page_scores,
+        score_threshold=40,
+        neighbor_threshold=13,
+        high_score_threshold=60,
+    )
+
+    from src.page_finding import _prune_to_dominant_clusters
+
+    pruned = _prune_to_dominant_clusters(relevant, page_scores, keep_ratio=0.75)
+
+    assert pruned == [86]

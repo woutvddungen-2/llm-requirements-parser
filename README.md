@@ -155,6 +155,7 @@ Run a PDF-backed case with an explicit page-finder strategy:
 
 ```bash
 pytest tests/test_expected_output.py -k 051_real_test_1 --models openai:gpt-5.4 --pdf-strategy keyword -n 1 -v
+pytest tests/test_expected_output.py -k 051_real_test_1 --models openai:gpt-5.4 --pdf-strategy hybrid -n 1 -v
 ```
 
 Useful pytest options:
@@ -163,7 +164,7 @@ Useful pytest options:
 - `-v` for verbose case names
 - `-n auto` for parallel execution
 - `--count 5` to repeat a case multiple times
-- `--pdf-strategy toc|keyword|regex|llm` for PDF-backed page selection experiments
+- `--pdf-strategy toc|keyword|regex|hybrid|category|llm` for PDF-backed page selection experiments
 
 ## Timing Fields
 

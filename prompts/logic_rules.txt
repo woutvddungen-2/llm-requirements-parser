@@ -100,10 +100,19 @@ There are two broad groups:
    - "De serverruimte krijgt een gezichtscanner" -> the doors of the serverruimte get a gezichtscanner
    - "Directiekantoren krijgen ook een pincodelezer" -> the doors of directiekantoren also get a pincodelezer
    - Intercom instructions belong to the physical access door they describe. "bij de personen toegang" attaches to that access door. "in het gesloten gedeelte direct achter de toegang" and "naast de abonnementdeur in de scheiding tussen open en gesloten gedeelte" both attach to the same boundary door between those sections — create exactly one rule for that boundary door_id and do not split into separate rules for each side.
-   - If both an entrance intercom and a boundary-door intercom are described, keep them as different door targets.
+   - CRITICAL - Intercom placement lists without explicit door targets: When a specification lists multiple intercom positions (e.g., "intercom in entree, in closed section, in open section") AS A PLACEMENT GUIDE, do NOT automatically create separate rules for each position. Instead:
+     * The "entree/entry" intercom should be MERGED with any other components (card readers, locks, sensors) mentioned for the main entrance door.
+     * Interior placement references (e.g., "in het gesloten gedeelte direct achter de toegang", "naast de abonnementdeur in de scheiding") belong to the boundary door EXPLICITLY NAMED in the placement description, not inferred doors.
+     * CRITICAL PRECEDENCE for "naast X" (next to X): When placement says "naast de [door_name]", ALWAYS resolve to that explicitly named door_name, NOT to the space mentioned before it.
+     * Example: "Intercom in het open gedeelte naast de abonnementdeur" → "naast de abonnementdeur" takes precedence: resolve to abonnementdeur (subscription/barrier door = door_04). Create one rule for door_04 with INTERCOM. Do NOT create a separate rule for door_03 just because "open gedeelte" was mentioned first.
+     * CRITICAL: When text describes an intercom "in [space_name] naast de [door_name]", the rule belongs to [door_name], NOT to any door of [space_name]. Do not create rules for intermediate doors like "space_name to previous_space" just because the space was mentioned.
+     * Only emit separate intercom-only rules when the text explicitly states a distinct access-control rule for an intermediate boundary (e.g., "intercom voor toegang tot het gesloten gedeelte" as a separate security requirement, WITHOUT SPATIAL PREFIX like "in het open gedeelte").
+   - If both an entrance intercom and a boundary-door intercom are described with explicit different door targets, keep them as different door targets.
    - If an entrance door already has card-reader / lock / sensor fields and the text also gives an intercom at that same entrance, merge INTERCOM into that same entrance-door rule.
    - If a numbered block first gives an intercom "bij de personentoegang" and later in that same block says the personentoegang has card readers and a closing/alarm mechanism, keep one personentoegang rule with INTERCOM + CARD + the explicit lock/sensor fields.
    - Earlier intercom-only positions from the same numbered block stay intercom-only unless those same positions receive their own explicit lock, sensor, reader, or button wording.
+   - CRITICAL - Main entrance intercom + card reader grouping: When the same access-control section mentions intercom "in de entreeruimte bij de personen toegang" (at the person entrance) and separately mentions "De personentoegang dient...voorzien van kaartlezers" (card readers at person entrance), these MUST be merged into ONE rule for the main entrance door (e.g., door_01) with both reader_types: [CARD, INTERCOM]. Do NOT split them into separate rules.
+   - When intercom is listed in a component-placement section (e.g., "Intercom dient op volgende posities...") and the first position is the main entrance/entry room ("entreeruimte bij de personen toegang"), and a later requirement sentence says the entrance gets card readers, merge them into the entrance door rule.
    - If the same boundary door is described from both sides, keep one DoorRule for that door_id. Choose the protected / destination side as `areas` when one side is clearly the secured side.
    - If several sentences describe the same door, merge them into one rule. Use fields from the most specific / most detailed subsection.
    - Distinct numbered sections or headings stay independent unless the text explicitly links them to the same door.
@@ -126,6 +135,18 @@ There are two broad groups:
    Do not emit both an abstract group rule and concrete door_id rules for the same requirement.
    If available_doors let you resolve "buitendeuren", "toegangsdeuren", "automatische deuren", "nooddeuren", or similar groups to specific doors, output only the concrete door_id rules and omit the abstract duplicate group rule.
 
+CRITICAL: Electronic vs Mechanical Access Distinction
+   ONLY extract electronic access-control requirements (card readers, intercom, badge readers, keypads, mag locks, electric door openers, solenoid locks, etc.).
+   MECHANICAL access (keys, cylinders, manual locks, keyways) does NOT count as electronic access control.
+   Examples:
+   - "De voordeur van ieder studio zal door middel van sleutels kunnen worden geopend" (access by mechanical keys) → Do NOT create door_rule.
+   - "De studio's zullen worden voorzien van binnenpost" (intercom) → Create door_rule IF the intercom is for the same physical door.
+   - "Kaartlezers voor bewoners bij de entree" → Create door_rule (electronic access).
+   - "Sleutels voor directie, rood/wit/blauw" → Skip entirely (mechanical keys, not electronic).
+   When a requirement text mentions both electronic systems (e.g., intercom at entrance) and mechanical keys (e.g., for individual unit doors), create rules ONLY for the electronic systems.
+   Do NOT infer that unit doors described as "key-only" have any electronic access-control properties.
+   If a specification clearly states that studio, apartment, or unit doors are accessed by mechanical keys only (sleutels, cilinder), do not create access-control rules for those unit doors.
+
 7. Do NOT infer:
    - No lock from door closer
    - No direction from reader type
@@ -135,6 +156,11 @@ There are two broad groups:
    - If the text does not explicitly state absence, omit the field instead of outputting `NONE`. This applies especially to lock_type, door_closer, reader_direction, exit_device, and emergency_button.
    - No reader_types = OTHER for generic door hardware, automatic-door hardware, or devices that map more specifically to exit_device, lock_type, emergency_button, or door_sensor
    - No emergency button from a door contact or alarm contact
+   - No exit_device from emergency-door buttons: Panic buttons and alarm controls are NOT exit devices. Only set exit_device when the text explicitly names exit hardware like "drukstang" (push bar), "elleboogschakelaar" (elbow switch), or motion sensors explicitly for exiting.
+   - No access-control rules from inventory mentions of doors with electronic locks: When a specification lists "Elektrische deuren hoofdentree" or "Elektrische deurkluiven" as a generic provision in a subsystem inventory, do NOT infer an access-control rule for that door unless the text EXPLICITLY describes access-control configuration (e.g., reader types, door sensors, emergency buttons) for that door.
+   - Example: A provisions list containing "Elektrische deuren hoofdentree" and "Videofoon-/intercom installatie" does NOT create a rule for main_entry. Create a rule ONLY if the text later explicitly says "De hoofdentree krijgt een intercom" or "Toegang tot de hoofdentree met kaartlezer".
+   - No hallucinated doors: Do NOT create rules for doors not explicitly named in the access-control section. Inventory mentions like "Toegangscontrole systeem" are subsystems, not individual door targets.
+   - No secondary door inference from space names: When a requirement text explicitly names a target door (e.g., "naast de abonnementdeur", "in de scheiding tussen X en Y"), do NOT create a secondary rule for a door merely because a space name was mentioned in the same sentence. Only create one rule for the explicitly-named target door.
    - Do not create door rules from requirements in general building, electrical, plumbing, ventilation, or painting sections that are not part of the access-control specification. A deurcontacten or deurstandmelder requirement in an electrical installation section (e.g., under a heading like 'Deurcontacten', 'Kabelaanleg', or 'Installatieonderdelen') does not generate a door_sensor rule unless it is explicitly inside the access-control section.
    - No side-hint from "binnenzijde" or "buitenzijde" alone. Use exit_device_side_hint or emergency_button_side_hint only when the text explicitly relates that side to the reader side, for example "zelfde zijde als de lezer" or "tegenoverliggende zijde van de lezer".
    - No side-hint from "parkeergaragezijde", "gebouwzijde", "gangzijde", or any other plain area-side wording alone. Those phrases identify a location, not a reader-relative side hint.

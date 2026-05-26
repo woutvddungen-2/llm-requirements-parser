@@ -2,7 +2,7 @@
 
 Usage:
     # Single model with single strategy
-    pytest tests/test_expected_output.py --models anthropic:claude-sonnet-4-6 --pdf-strategy keyword
+    pytest tests/test_expected_output.py --models anthropic:claude-sonnet-4-6 --pdf-strategy hybrid
 
     # Multiple models, multiple strategies, multiple runs with parallel execution
     pytest tests/test_expected_output.py \
@@ -15,7 +15,7 @@ Usage:
     # Test all PDF strategies against a test case
     pytest tests/test_expected_output.py \
       --models anthropic:claude-sonnet-4-6 \
-      --pdf-strategy toc,keyword,regex \
+      --pdf-strategy toc,keyword,regex,hybrid \
       -k 052_fietsenstalling_toegang \
       --count 2 \
       -n auto
@@ -23,7 +23,7 @@ Usage:
     # Cost-effective: simple models on simple cases, powerful models on complex ones
     pytest tests/test_expected_output.py \
       --models anthropic:claude-haiku-4-5-20251001,anthropic:claude-sonnet-4-6 \
-      --pdf-strategy toc,keyword \
+      --pdf-strategy hybrid,keyword \
       -k "051 or 052" \
       --count 3 \
       -n auto
@@ -55,8 +55,8 @@ def pytest_addoption(parser):
     parser.addoption(
         "--pdf-strategy",
         action="store",
-        default="keyword",
-        help="Page selection strategy for PDF-backed cases (comma-separated for multiple: toc,keyword,regex,hybrid,llm).",
+        default="hybrid",
+        help="Page selection strategy for PDF-backed cases (comma-separated for multiple: toc,keyword,regex,hybrid,category,llm).",
     )
 
 
@@ -102,7 +102,7 @@ def pytest_generate_tests(metafunc):
             raise ValueError(f"Invalid pdf-strategy values: {invalid}. Valid choices: {valid_strategies}")
 
         if not strategies:
-            strategies = ["keyword"]  # default
+            strategies = ["hybrid"]  # default
 
         metafunc.parametrize("pdf_strategy", strategies, ids=strategies)
 
