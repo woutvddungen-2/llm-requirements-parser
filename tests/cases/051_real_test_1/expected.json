@@ -1,0 +1,51 @@
+{
+  "system_type": "ACCESS_CONTROL",
+  "version": "1.0",
+  "requirements": {
+    "door_rules": [
+      {
+        "areas": [
+          "Entreehal"
+        ],
+        "connects_to_areas": [
+          "OUTSIDE"
+        ],
+        "door_id": "door_01",
+        "reader_types": [
+          "CARD"
+        ],
+        "lock_type": "SOLENOID_LOCK",
+        "emergency_button": "STANDALONE",
+        "door_sensor": true,
+        "description": "De toegangsdeur naar de Entreehal krijgt een kaartlezer, een elektrisch slot, een noodknop en een deurcontact"
+      },
+      {
+        "areas": [
+          "Parkeergarage"
+        ],
+        "connects_to_areas": [
+          "OUTSIDE"
+        ],
+        "door_id": "door_15",
+        "reader_types": [
+          "CARD"
+        ],
+        "lock_type": "SOLENOID_LOCK",
+        "emergency_button": "STANDALONE",
+        "door_sensor": true,
+        "description": "De toegangsdeur naar de Parkeergarage krijgt een kaartlezer, een elektrisch slot, een noodknop en een deurcontact"
+      }
+    ],
+    "controller_rules": [
+      {
+        "areas": [],
+        "manages_door_areas": [
+          "Entreehal",
+          "Parkeergarage"
+        ],
+        "connection_type": "BUS",
+        "description": "De toegangscontrolecentrales worden middels een databus met elkaar doorverbonden"
+      }
+    ]
+  }
+}

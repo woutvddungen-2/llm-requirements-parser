@@ -1,0 +1,48 @@
+{
+  "system_type": "ACCESS_CONTROL",
+  "version": "1.0",
+  "requirements": {
+    "door_rules": [
+      {
+        "areas": [
+          "Fietsenstalling"
+        ],
+        "connects_to_areas": [
+          "OUTSIDE"
+        ],
+        "door_id": "door_01",
+        "reader_direction": "IN_OUT",
+        "reader_types": [
+          "CARD",
+          "INTERCOM"
+        ],
+        "lock_type": "OTHER",
+        "door_sensor": true,
+        "description": "De personentoegang van de fietsenstalling krijgt kaartlezers, intercom en een sluit- en alarmeringsmechanisme"
+      },
+      {
+        "areas": [
+          "Gesloten gedeelte"
+        ],
+        "door_id": "door_04",
+        "reader_types": [
+          "INTERCOM"
+        ],
+        "description": "De intercom bij de toegang tot het gesloten gedeelte en naast de abonnementdeur in de scheiding tussen open en gesloten gedeelte wordt op de grensdeur geplaatst"
+      },
+      {
+        "areas": [
+          "Nooduitgang"
+        ],
+        "connects_to_areas": [
+          "OUTSIDE"
+        ],
+        "door_id": "door_02",
+        "door_sensor": true,
+        "lock_type": "OTHER",
+        "description": "De nooddeur krijgt een signaleringssysteem en een dag- en nachtslot"
+      }
+    ],
+    "controller_rules": []
+  }
+}

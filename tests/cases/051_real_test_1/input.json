@@ -1,0 +1,118 @@
+{
+  "pdf_path": "/mnt/c/datasets/enginize_root/spec_documents/ASZ.pdf",
+  "available_spaces": [
+    "Parkeergarage",
+    "Fietsenstalling",
+    "Scooterstalling",
+    "Entreehal",
+    "Corridor",
+    "Trappenhuis",
+    "WKO ruimte",
+    "Commerciële ruimte",
+    "Supermarkt",
+    "Woning",
+    "Atrium",
+    "Liftlobby",
+    "Backoffice",
+    "Opslag",
+    "Technische ruimte"
+  ],
+  "available_doors": [
+    {
+      "door_id": "door_01",
+      "space_a": "OUTSIDE",
+      "space_b": "Entreehal",
+      "is_external": true
+    },
+    {
+      "door_id": "door_15",
+      "space_a": "OUTSIDE",
+      "space_b": "Parkeergarage",
+      "is_external": true
+    },
+    {
+      "door_id": "door_02",
+      "space_a": "Entreehal",
+      "space_b": "Corridor",
+      "is_external": false
+    },
+    {
+      "door_id": "door_03",
+      "space_a": "Corridor",
+      "space_b": "Trappenhuis",
+      "is_external": false
+    },
+    {
+      "door_id": "door_04",
+      "space_a": "Corridor",
+      "space_b": "Commerciële ruimte",
+      "is_external": false
+    },
+    {
+      "door_id": "door_05",
+      "space_a": "Corridor",
+      "space_b": "Supermarkt",
+      "is_external": false
+    },
+    {
+      "door_id": "door_06",
+      "space_a": "Corridor",
+      "space_b": "Woning",
+      "is_external": false
+    },
+    {
+      "door_id": "door_07",
+      "space_a": "Corridor",
+      "space_b": "WKO ruimte",
+      "is_external": false
+    },
+    {
+      "door_id": "door_08",
+      "space_a": "Corridor",
+      "space_b": "Technische ruimte",
+      "is_external": false
+    },
+    {
+      "door_id": "door_09",
+      "space_a": "Corridor",
+      "space_b": "Opslag",
+      "is_external": false
+    },
+    {
+      "door_id": "door_10",
+      "space_a": "Corridor",
+      "space_b": "Liftlobby",
+      "is_external": false
+    },
+    {
+      "door_id": "door_16",
+      "space_a": "Corridor",
+      "space_b": "Parkeergarage",
+      "is_external": false
+    },
+    {
+      "door_id": "door_11",
+      "space_a": "Liftlobby",
+      "space_b": "Atrium",
+      "is_external": false
+    },
+    {
+      "door_id": "door_12",
+      "space_a": "Parkeergarage",
+      "space_b": "Fietsenstalling",
+      "is_external": false
+    },
+    {
+      "door_id": "door_13",
+      "space_a": "Parkeergarage",
+      "space_b": "Scooterstalling",
+      "is_external": false
+    },
+    {
+      "door_id": "door_14",
+      "space_a": "Backoffice",
+      "space_b": "Corridor",
+      "is_external": false
+    }
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "pdf_path": "/mnt/c/datasets/enginize_root/spec_documents/Fietsenstalling.pdf",
+  "available_spaces": [
+    "Buiten",
+    "Fietsenstalling",
+    "Open gedeelte",
+    "Gesloten gedeelte",
+    "Beheerdersruimte",
+    "Dataruimte",
+    "Nooduitgang"
+  ],
+  "available_doors": [
+    {
+      "door_id": "door_01",
+      "space_a": "OUTSIDE",
+      "space_b": "Fietsenstalling",
+      "is_external": true
+    },
+    {
+      "door_id": "door_02",
+      "space_a": "OUTSIDE",
+      "space_b": "Nooduitgang",
+      "is_external": true
+    },
+    {
+      "door_id": "door_03",
+      "space_a": "Fietsenstalling",
+      "space_b": "Open gedeelte",
+      "is_external": false
+    },
+    {
+      "door_id": "door_04",
+      "space_a": "Fietsenstalling",
+      "space_b": "Gesloten gedeelte",
+      "is_external": false
+    },
+    {
+      "door_id": "door_05",
+      "space_a": "Fietsenstalling",
+      "space_b": "Beheerdersruimte",
+      "is_external": false
+    },
+    {
+      "door_id": "door_06",
+      "space_a": "Beheerdersruimte",
+      "space_b": "Dataruimte",
+      "is_external": false
+    }
+  ]
+}

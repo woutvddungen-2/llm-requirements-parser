@@ -1,0 +1,29 @@
+{
+  "requirement_text": "De deur van de hal naar de serverruimte krijgt een IN kaartlezer.\nDe exitknop van deze deur zit aan dezelfde zijde als de lezer.\nDe groene noodknop van deze deur zit aan de tegenoverliggende zijde van de lezer.\nDeze deur krijgt ook een deurcontact.\nDe deur van de hal naar het kantoor krijgt een kaartlezer.\nDe exitknop van deze deur zit aan de andere zijde dan de lezer.\nDe groene noodknop van deze deur zit aan beide zijden.",
+  "available_spaces": [
+    "Hal",
+    "Serverruimte",
+    "Kantoor",
+    "Entree"
+  ],
+  "available_doors": [
+    {
+      "door_id": "door_09",
+      "space_a": "Hal",
+      "space_b": "Serverruimte",
+      "is_external": false
+    },
+    {
+      "door_id": "door_06",
+      "space_a": "Hal",
+      "space_b": "Kantoor",
+      "is_external": false
+    },
+    {
+      "door_id": "door_12",
+      "space_a": "OUTSIDE",
+      "space_b": "Entree",
+      "is_external": true
+    }
+  ]
+}
