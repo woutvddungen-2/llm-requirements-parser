@@ -94,7 +94,7 @@ def pytest_generate_tests(metafunc):
     # Parametrize 'pdf_strategy' (supports comma-separated values)
     if "pdf_strategy" in metafunc.fixturenames:
         raw_strategies = metafunc.config.getoption("pdf_strategy")
-        valid_strategies = {"toc", "keyword", "regex", "hybrid", "llm"}
+        valid_strategies = {"toc", "keyword", "regex", "hybrid", "category", "llm"}
         strategies = [s.strip() for s in raw_strategies.split(",") if s.strip()]
 
         invalid = [s for s in strategies if s not in valid_strategies]

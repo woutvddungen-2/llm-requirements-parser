@@ -19,11 +19,13 @@ from src.page_finding_ac_config import (
     REGEX_NEIGHBOR_THRESHOLD,
     REGEX_SCORE_THRESHOLD,
     SCORE_THRESHOLD,
+    SECTION_CATEGORIES,
+    PageCategoryScores,
 )
 from src.pdf_utils import load_pdf_page_texts, load_pdf_toc
 
 DEFAULT_PAGE_FINDER_MAX_TOKENS = 2048
-PAGE_FINDER_STRATEGIES = ("toc", "keyword", "regex", "hybrid", "llm")
+PAGE_FINDER_STRATEGIES = ("toc", "keyword", "regex", "hybrid", "category", "llm")
 TEXT_TOC_SCAN_LIMIT = 20
 TEXT_TOC_MIN_TOCISH_LINES = 5
 TEXT_TOC_MAX_PAGE_NUMBER = 500
@@ -64,6 +66,38 @@ class PageSelection:
     primary_pages: list[int] | None = None
     neighbor_pages: list[int] | None = None
     page_result: PageFinderResult | None = None
+    category_scores: dict[int, PageCategoryScores] | None = None
+
+
+def score_pages_by_category(page_texts: Mapping[int, str]) -> dict[int, PageCategoryScores]:
+    """Score each page across all section categories (ACCESS, HVAC, FIRE, etc).
+
+    Returns a dict mapping page number to CategoryScores with scores for each category.
+    """
+    results = {}
+
+    for page_num, text in page_texts.items():
+        scores = {}
+
+        for category_name, category_config in SECTION_CATEGORIES.items():
+            category_score = 0
+
+            # Score by keywords
+            for keyword, weight in category_config["keywords"].items():
+                if keyword.lower() in text.lower():
+                    category_score += weight
+
+            # Score by regex patterns
+            for pattern_str, weight in category_config["regex"]:
+                pattern = re.compile(pattern_str, re.IGNORECASE)
+                if pattern.search(text):
+                    category_score += weight
+
+            scores[category_name] = category_score
+
+        results[page_num] = PageCategoryScores(page_num=page_num, scores=scores)
+
+    return results
 
 
 def find_relevant_pages(
@@ -174,6 +208,19 @@ def find_relevant_pages(
                 page_texts=page_texts,
             )
         raise ValueError(f"No relevant pages found via hybrid scoring for {pdf_path}.")
+
+    if strategy == "category":
+        category_scores = score_pages_by_category(page_texts)
+        relevant_pages = _find_from_category_scores(category_scores)
+        if relevant_pages:
+            return PageSelection(
+                method="Category-based filtering (ACCESS/FIRE/CAMERA, no HVAC-heavy)",
+                relevant_pages=relevant_pages,
+                page_scores={p: 0 for p in relevant_pages},  # Not used, but required
+                page_texts=page_texts,
+                category_scores=category_scores,
+            )
+        raise ValueError(f"No relevant pages found via category filtering for {pdf_path}.")
 
     if not model:
         raise ValueError(
@@ -664,3 +711,51 @@ def _find_via_llm(
         **result.__dict__,
         page_numbers=[int(p) for p in page_numbers],
     )
+
+
+def _find_from_category_scores(category_scores: dict[int, PageCategoryScores]) -> list[int]:
+    """Select pages based on category classification.
+
+    Prioritizes PURE access-related pages (where ACCESS dominates) while including
+    supporting pages (FIRE for emergency doors, CAMERA for surveillance).
+
+    Logic:
+    - PRIMARY filter: ACCESS pages with score >=20 and low contamination from other categories
+    - SECONDARY filter: FIRE pages (>=20) or CAMERA pages (>=25)
+    - REJECT: HVAC-heavy pages (HVAC score >> ACCESS score)
+    - REJECT: Highly mixed pages (multiple categories with similar high scores)
+    """
+    accepted_pages = []
+
+    for page_num in sorted(category_scores.keys()):
+        cs = category_scores[page_num]
+
+        # Reject if HVAC is heavily dominant
+        if cs.is_hvac_heavy:
+            continue
+
+        primary = cs.primary_category
+        primary_score = cs.scores.get(primary, 0)
+        other_scores = [s for cat, s in cs.scores.items() if cat != primary]
+        max_other = max(other_scores) if other_scores else 0
+
+        # Reject if multiple categories have similar high scores (mixed content)
+        high_competition = sum(1 for s in other_scores if s >= primary_score * 0.7)
+        if high_competition >= 2:  # 2+ other categories at 70%+ of primary score = too mixed
+            continue
+
+        # Include PURE ACCESS pages
+        if primary == "ACCESS" and primary_score >= 20:
+            accepted_pages.append(page_num)
+        # Include supporting categories at higher thresholds
+        elif primary == "FIRE" and primary_score >= 25:
+            accepted_pages.append(page_num)
+        elif primary == "CAMERA" and primary_score >= 30:
+            accepted_pages.append(page_num)
+
+    # Sort by ACCESS score (highest first), then by page number
+    accepted_pages.sort(
+        key=lambda p: (-category_scores[p].scores.get("ACCESS", 0), p)
+    )
+
+    return accepted_pages
