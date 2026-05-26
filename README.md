@@ -89,7 +89,7 @@ Benchmark cases and knowledge-base examples use `input.json` with this shape:
 }
 ```
 
-The benchmark still accepts legacy `input.txt` files during transition, but the JSON format is the preferred and current one.
+The benchmark uses `input.json` cases only.
 
 ## Few-Shot Retrieval
 
@@ -178,4 +178,3 @@ Current behavior:
 - This repo is optimized for comparison runs, not for production deployment.
 - The knowledge base is intentionally broader than the benchmark cases so few-shot retrieval stays useful without mirroring the tests too closely.
 - The few-shot cache is local only; it is not meant to be committed.
-
