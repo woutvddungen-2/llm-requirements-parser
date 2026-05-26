@@ -12,9 +12,12 @@ Output rules:
 - Extract only explicitly stated information.
 - Do not assume defaults or infer engineering rules.
 - Omit a field unless explicitly present.
+- Do not output placeholder or empty door rules. Every DoorRule must contain at least one supported access-control property beyond areas/door_id/connects_to_areas, such as reader_types, lock_type, door_sensor, door_closer, exit_device, or emergency_button.
+- Do not use lock_type = OTHER as a catch-all placeholder for vague access wording. If the text only says a door has an "elektronisch sluitsysteem" or similarly generic locking concept without naming a concrete or explicit unnamed physical mechanism, omit lock_type entirely.
 - Never set a boolean field to `false` unless the text explicitly states the feature is absent or disabled. If not mentioned, omit the field entirely.
 - Use "NONE" only when the absence is explicitly stated.
 - Ignore wiring, cabling, cable routing, future preparations, and supply responsibilities.
+- General inventory or subsystem summary lines do not create DoorRules by themselves. A DoorRule requires a concrete door target plus at least one supported access-control property that is actually assigned to that door.
 
 Door resolution:
 - Each rule targets exactly one physical door. Never group multiple doors into one rule.
@@ -23,6 +26,7 @@ Door resolution:
 - Always populate `areas` even when `door_id` is set.
 - For external doors (is_external=true): ALWAYS set connects_to_areas=["OUTSIDE"] when door_id is set.
 - For internal doors (is_external=false): NEVER set connects_to_areas when door_id is set.
+- Plain "binnenzijde", "buitenzijde", "gebouwzijde", or "<ruimte>zijde" wording does not justify exit_device_side_hint or emergency_button_side_hint by itself. Only emit side hints when the text is explicitly relative to another device such as the reader.
 - Only omit `door_id` when the door cannot be resolved from the available context. If no door in the list matches, still emit the rule without `door_id` — the door list may be incomplete.
 - Emit exactly one DoorRule per physical `door_id`. Later sentences add fields to that same rule.
 - If one known boundary door is described from both sides, still use that one `door_id`.
@@ -32,3 +36,19 @@ Component list handling for doors:
 - Specifically: "elektrische sloten" or "elektrisch slot" in a component list ALWAYS maps to lock_type = SOLENOID_LOCK for the target doors, even if not explicitly mentioned in the target sentence.
 - "deurcontrole eenheden" or "deurstandmelder" in a component list ALWAYS maps to door_sensor = true for the target doors.
 - Apply this even when the target sentence only mentions some of the components.
+
+UI components vs. reader types:
+- "Code-scroll panelen" or "codepaneel" in an intercom context is a UI display/control panel, NOT a CODE reader. Example: "video-intercom met code-scroll panelen" → extract INTERCOM only, NOT CODE.
+- When text mentions intercom hardware features (speakers, displays, buttons), do not extract them as separate reader types.
+
+Visitor vs. Resident Access Separation - BUT same physical door:
+- When requirement text distinguishes between different user types (e.g., "bezoekers" visitors vs "bewoners" residents), check if they access the SAME physical door or DIFFERENT doors.
+- If SAME door: "Intercom voor bezoekers bij de entree" + "Kaartlezers voor bewoners bij de entree" → MERGE into one rule (main_entry with INTERCOM + CARD).
+- If DIFFERENT doors: "Intercom for visitors at main entry" + "Card readers for residents at common area" → two separate rules.
+- Use available_doors and explicit room names to determine if "toegangsdeur", "entree", "voordeur" refer to the same physical boundary or different ones within the same subsection.
+
+Lock type inference prevention:
+- Generic component mentions (e.g., "Deuropenerinstallatie" listed as a standalone component) that are NOT explicitly tied to a specific door must NOT generate lock_type fields.
+- Only set lock_type when a lock or door opener is explicitly assigned to a named door in context.
+- Example: "Deuropenerinstallatie, fabricaat Assa Abloy" (mentioned alone) → OMIT lock_type entirely.
+- Example: "De serverruimte krijgt een magneetslot" (explicitly named door) → lock_type: MAGNETIC_LOCK.

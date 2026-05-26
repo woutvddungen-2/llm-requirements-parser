@@ -1,0 +1,38 @@
+{
+  "requirement_text": "Er wordt een toegangscontrole installatie aangebracht op alle buitentoegangen van het gebouw. In het gebouw wordt toegangscontrole toegepast op alle deuren die het publiekgebied scheiden van het personeelsgedeelte van het gebouw. De toegangscontrole uit te voeren met elektrische deursloten met batchreaders en waar nodig ontgrendelknoppen.",
+  "language": "Dutch",
+  "available_spaces": [
+    "Buiten",
+    "Lobby",
+    "Receptie",
+    "Publiekgebied",
+    "Personeelsgedeelte",
+    "Directiekantoor"
+  ],
+  "available_doors": [
+    {
+      "door_id": "door_01",
+      "space_a": "OUTSIDE",
+      "space_b": "Lobby",
+      "is_external": true
+    },
+    {
+      "door_id": "door_02",
+      "space_a": "OUTSIDE",
+      "space_b": "Receptie",
+      "is_external": true
+    },
+    {
+      "door_id": "door_03",
+      "space_a": "Publiekgebied",
+      "space_b": "Personeelsgedeelte",
+      "is_external": false
+    },
+    {
+      "door_id": "door_04",
+      "space_a": "Personeelsgedeelte",
+      "space_b": "Directiekantoor",
+      "is_external": false
+    }
+  ]
+}

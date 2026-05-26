@@ -165,6 +165,49 @@ door_24: Q <-> OUTSIDE, external=true
   }
 }
 
+Example 5 - Visitor vs. Resident Access Separation
+
+Input:
+
+Voor het toelaten van bezoekers zal een video-intercominstallatie worden gerealiseerd met code-scroll panelen bij de entree. De toegang tot het gebouw voor bewoners zal door middel van kaartlezers en tags worden gerealiseerd.
+
+Available doors:
+door_main: OUTSIDE <-> Entree, external=true
+door_resident: Entree <-> Gemeenschappelijk, external=false
+
+Output:
+
+{
+  "system_type": "ACCESS_CONTROL",
+  "version": "1.0",
+  "requirements": {
+    "door_rules": [
+      {
+        "areas": ["Entree"],
+        "connects_to_areas": ["OUTSIDE"],
+        "door_id": "door_main",
+        "reader_types": ["INTERCOM"],
+        "description": "Video-intercominstallatie voor bezoekers bij de entree (code-scroll paneel is UI, not CODE reader)"
+      },
+      {
+        "areas": ["Gemeenschappelijk"],
+        "door_id": "door_resident",
+        "reader_types": ["CARD"],
+        "description": "Kaartlezers en tags voor bewonerstoegang tot gemeenschappelijke ruimten"
+      }
+    ],
+    "controller_rules": []
+  }
+}
+
+Key extraction rules demonstrated:
+- "code-scroll panelen" is UI interface for intercom, NOT a CODE reader type
+- "Bezoekers intercom" (visitor access) → external door (OUTSIDE connection)
+- "Bewoners kaartlezers" (resident access) → internal door (common areas)
+- NO lock_type inferred from reader types (kaartlezers do NOT imply solenoid lock unless explicitly stated)
+- NO lock_type from generic component mentions (e.g., "Deuropenerinstallatie") unless tied to a specific door
+- Separate rules created for different user groups, not merged into one door
+
 CRITICAL OUTPUT RULE:
 Output RAW JSON only.
 No ```json, no ```, no prose, no comments.

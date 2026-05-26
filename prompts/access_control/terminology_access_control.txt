@@ -8,7 +8,7 @@ geen lezer                                          → NONE
 Otherwise                                           → omit reader_direction
 
 Reader type:
-kaart / pas / badge      → CARD
+kaart / pas / badge / tag → CARD
 code / pincode / keypad  → CODE
 vingerafdruk             → FINGERPRINT
 gezicht / oog(scanner)   → FACE_RECOGNITION
@@ -19,15 +19,20 @@ handzender               → WIRELESS_KEYFOB
 app                      → MOBILE_APP
 kenteken                 → LICENSEPLATE_CAMERA
 intercom                 → INTERCOM
+Never map "tag" or "tags" to WIRELESS_KEYFOB or NFC. Unless the text explicitly says NFC, interpret tag/tags as the generic CARD credential category.
+Reader/tag wording such as "kaartlezer (tag)", "paslezer", "taglezer", or "met tag openen" still maps to CARD, not WIRELESS_KEYFOB.
+Only use WIRELESS_KEYFOB when the text explicitly says handzender, afstandsbediening, zender, or similar remote-control hardware.
 
 Lock:
 motorslot                → MOTORIZED_LOCK
 magneet(slot)            → MAGNETIC_LOCK
 sluitplaat               → ELECTRIC_STRIKE_PLATE
 elektrisch slot / elektrische sloten → SOLENOID_LOCK
+sluitsysteem / elektronisch sluitsysteem → no direct lock mapping; only set lock_type when the concrete mechanism is named
 geen slot                → NONE
 sluit-mechanisme         → OTHER when no specific lock type is named
 sluit- en alarmeringsmechanisme → OTHER for the lock part; on a concrete access door also emit door_sensor = true for the alarm/contact part
+Never use OTHER for generic wording like "elektronisch sluitsysteem" alone. OTHER is only for an explicit but unnamed physical lock or closing mechanism on that concrete door.
 
 Door closer:
 deurdranger              → MECHANICAL

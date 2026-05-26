@@ -1,0 +1,33 @@
+{
+  "system_type": "ACCESS_CONTROL",
+  "version": "1.0",
+  "requirements": {
+    "door_rules": [
+      {
+        "areas": ["Lobby"],
+        "connects_to_areas": ["OUTSIDE"],
+        "door_id": "door_01",
+        "reader_types": ["OTHER"],
+        "lock_type": "SOLENOID_LOCK",
+        "description": "Buitentoegang met elektrisch slot en batchreader"
+      },
+      {
+        "areas": ["Receptie"],
+        "connects_to_areas": ["OUTSIDE"],
+        "door_id": "door_02",
+        "reader_types": ["OTHER"],
+        "lock_type": "SOLENOID_LOCK",
+        "description": "Buitentoegang met elektrisch slot en batchreader"
+      },
+      {
+        "areas": ["Personeelsgedeelte"],
+        "door_id": "door_03",
+        "reader_types": ["OTHER"],
+        "lock_type": "SOLENOID_LOCK",
+        "emergency_button": "STANDALONE",
+        "description": "Deur scheidend publiekgebied van personeelsgedeelte, uitgerust met elektrisch slot, batchreader en ontgrendelknop"
+      }
+    ],
+    "controller_rules": []
+  }
+}

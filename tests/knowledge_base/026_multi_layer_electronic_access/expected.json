@@ -1,0 +1,23 @@
+{
+  "system_type": "ACCESS_CONTROL",
+  "version": "1.0",
+  "requirements": {
+    "door_rules": [
+      {
+        "areas": ["Receptie"],
+        "connects_to_areas": ["OUTSIDE"],
+        "door_id": "door_main",
+        "reader_types": ["INTERCOM"],
+        "lock_type": "OTHER",
+        "description": "Hoofdentree met elektronisch cijferslot en intercominstallatie voor ontgrendeling van dagschoot"
+      },
+      {
+        "areas": ["KDV"],
+        "connects_to_areas": ["OUTSIDE"],
+        "door_id": "door_kdv",
+        "description": "KDV entree met tag-gebaseerde toegang"
+      }
+    ],
+    "controller_rules": []
+  }
+}

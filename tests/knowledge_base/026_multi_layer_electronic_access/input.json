@@ -1,0 +1,24 @@
+{
+  "requirement_text": "De hoofdentree van de vestiging moet beveiligd zijn met een elektronisch cijferslot, dit cijferslot moet de dagschoot van de desbetreffende deur vrijgeven. Er dient een bellentableau en intercominstallatie te worden aangebracht die eveneens deze dagschoot kan ontgrendelen. De nachtschoot mag middels een knopcilinderslot worden vergrendeld. Het gedeelte van de KDV krijgt een aparte entree met tags voor toegang.",
+  "language": "Dutch",
+  "available_spaces": [
+    "Buiten",
+    "Receptie",
+    "KDV",
+    "Kantoorruimte"
+  ],
+  "available_doors": [
+    {
+      "door_id": "door_main",
+      "space_a": "OUTSIDE",
+      "space_b": "Receptie",
+      "is_external": true
+    },
+    {
+      "door_id": "door_kdv",
+      "space_a": "OUTSIDE",
+      "space_b": "KDV",
+      "is_external": true
+    }
+  ]
+}
