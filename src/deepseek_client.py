@@ -15,6 +15,8 @@ def deepseek_generate_text(
     """
     DeepSeek-specific text generation using the OpenAI-compatible API.
     Includes timing + token usage metadata.
+    model names: https://api-docs.deepseek.com/quick_start/pricing
+    examples: deepseek:deepseek-v4-flash deepseek:deepseek-v4-pro
     """
     load_dotenv()
     api_key = os.getenv("DEEPSEEK_API_KEY")

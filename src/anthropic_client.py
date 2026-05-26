@@ -27,6 +27,8 @@ def anthropic_generate_text(
     """
     Anthropic-specific text generation using the Messages API.
     Includes timing + token usage metadata.
+    model names: https://docs.anthropic.com/claude/reference/models
+    examples: anthropic:claude-haiku-4-5 claude-sonnet-4-6, anthropic:claude-opus-4-7
     """
     load_dotenv()
 
@@ -39,18 +41,21 @@ def anthropic_generate_text(
     started = datetime.now(UTC)
 
     try:
-        message = client.messages.create(
-            model=model_name,
-            max_tokens=max_tokens,
-            temperature=temperature,
-            system=system_prompt,
-            messages=[
+        kwargs = {
+            "model": model_name,
+            "max_tokens": max_tokens,
+            "system": system_prompt,
+            "messages": [
                 {
                     "role": "user",
                     "content": user_prompt,
                 }
             ],
-        )
+        }
+        if not model_name.startswith("claude-opus-4-7"):
+            kwargs["temperature"] = temperature
+
+        message = client.messages.create(**kwargs)
     except RateLimitError as exc:
         raise RuntimeError("Anthropic rate limit / quota error.") from exc
 

@@ -16,6 +16,8 @@ def gemini_generate_text(
     """
     Gemini-specific text generation using the Google GenAI SDK.
     Includes timing + token usage metadata.
+    model names: https://ai.google.dev/gemini-api/docs/models
+    examples: gemini:gemini-3.5-flash gemini:gemini-3.1-pro-preview
     """
     load_dotenv()
     api_key = os.getenv("GEMINI_API_KEY")

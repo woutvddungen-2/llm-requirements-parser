@@ -17,6 +17,8 @@ def openai_generate_text(
     """
     OpenAI-specific text generation using the Responses API.
     Includes timing + token usage metadata.
+    model names: https://developers.openai.com/api/docs/models/all
+    examples: openai:gpt-4o openai:gpt-5.1-mini
     """
     load_dotenv()
 
