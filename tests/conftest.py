@@ -1,9 +1,10 @@
 """Pytest configuration for requirement extraction tests.
 
 Usage:
-    pytest tests/ --models gemini:gemini-1.5-pro
-    pytest tests/ --models gemini:gemini-1.5-pro,openai:gpt-4-turbo --use-few-shot both -v
-    pytest tests/ --models gemini --use-few-shot both --count 3 -n auto -v
+    pytest tests/test_expected_output.py --models openai:gpt-5.4
+    pytest tests/test_expected_output.py --models openai:gpt-5.4,anthropic:claude-sonnet-4-5 --use-few-shot both -v
+    pytest tests/test_expected_output.py --models openai:gpt-5.4 --page-finder-strategy keyword -k 051_real_test_1 -v
+    pytest tests/test_expected_output.py --models openai:gpt-5.4 --count 3 -n auto -v
 """
 
 from datetime import UTC, datetime
@@ -25,6 +26,13 @@ def pytest_addoption(parser):
         default="false",
         choices=["false", "true", "both"],
         help="Test methods: 'false' (no few-shot), 'true' (with few-shot examples), 'both' (default: standard)",
+    )
+    parser.addoption(
+        "--page-finder-strategy",
+        action="store",
+        default="keyword",
+        choices=["toc", "keyword", "llm"],
+        help="Page selection strategy for PDF-backed cases.",
     )
 
 
@@ -83,6 +91,12 @@ def pytest_configure(config):
     knowledge_base = load_knowledge_base(kb_dir)
     if knowledge_base:
         create_embeddings(knowledge_base)
+
+
+@pytest.fixture
+def page_finder_strategy(request) -> str:
+    """Return the explicit page-finder strategy configured on the CLI."""
+    return str(request.config.getoption("page_finder_strategy"))
 
 
 def pytest_sessionfinish(session, exitstatus):

@@ -4,7 +4,7 @@ from src.llm_client import generate_text, load_system_prompt
 from src.prompt_builder import PromptBuilder
 from src.llm_types import LLMResult
 
-DEFAULT_MAX_TOKENS = 4096
+DEFAULT_MAX_TOKENS = 8192
 
 BASE_PROMPT_FILES = [
     "prompts/system_core.txt",

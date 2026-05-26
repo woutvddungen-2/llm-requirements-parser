@@ -2,34 +2,37 @@ import json
 import difflib
 from pathlib import Path
 import re
+from time import perf_counter
 from typing import Any
-
-
-def load_text(path: Path) -> str:
-    return path.read_text(encoding="utf-8").strip()
 
 
 def load_json(path: Path) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def load_case_input(case_dir: Path) -> dict[str, Any]:
+def load_case_input(case_dir: Path, page_finder_strategy: str = "keyword") -> dict[str, Any]:
     """
     Load benchmark input in the same shape as the main API usage.
 
-    Preferred format:
+    Supported format:
       input.json -> {"requirement_text": "...", "available_spaces": [...], "available_doors": [...]}
-
-    Legacy fallback:
-      input.txt -> plain requirement text
+      input.json + pdf_path -> PDF-backed page selection when requirement_text is absent
     """
     input_json = case_dir / "input.json"
-    input_txt = case_dir / "input.txt"
 
     if input_json.exists():
         payload = load_json(input_json)
         if not isinstance(payload, dict):
             raise ValueError(f"{input_json} must contain a JSON object.")
+
+        if payload.get("pdf_path") and not payload.get("requirement_text"):
+            return _load_pdf_backed_case_input(
+                case_dir,
+                payload,
+                input_json,
+                page_finder_strategy=page_finder_strategy,
+            )
+
         if "requirement_text" not in payload:
             raise ValueError(f"{input_json} must include 'requirement_text'.")
         return {
@@ -37,17 +40,59 @@ def load_case_input(case_dir: Path) -> dict[str, Any]:
             "language": payload.get("language", "Dutch"),
             "available_spaces": payload.get("available_spaces"),
             "available_doors": payload.get("available_doors"),
+            "input_source_mode": "text",
+            "pdf_extraction_ms": 0,
         }
 
-    if input_txt.exists():
-        return {
-            "requirement_text": load_text(input_txt),
-            "language": "Dutch",
-            "available_spaces": None,
-            "available_doors": None,
-        }
+    raise FileNotFoundError(f"No input.json found in {case_dir}")
 
-    raise FileNotFoundError(f"No input.json or input.txt found in {case_dir}")
+
+def _load_pdf_backed_case_input(
+    case_dir: Path,
+    payload: dict[str, Any],
+    input_json_path: Path,
+    page_finder_strategy: str,
+) -> dict[str, Any]:
+    pdf_path_value = payload.get("pdf_path")
+    if not pdf_path_value:
+        raise ValueError(
+            f"{input_json_path} must include 'pdf_path' when 'requirement_text' is absent."
+        )
+
+    pdf_path = Path(str(pdf_path_value))
+    if not pdf_path.is_absolute():
+        pdf_path = (case_dir / pdf_path).resolve()
+
+    if not pdf_path.exists():
+        raise FileNotFoundError(f"PDF not found for page_finder mode: {pdf_path}")
+
+    from src.page_finding import build_requirement_text_from_pages, find_relevant_pages
+
+    started = perf_counter()
+    selection = find_relevant_pages(
+        pdf_path=pdf_path,
+        strategy=page_finder_strategy,
+        model=payload.get("page_finder_model"),
+    )
+    requirement_text = build_requirement_text_from_pages(
+        selection.page_texts,
+        selection.relevant_pages,
+    )
+    pdf_extraction_ms = int((perf_counter() - started) * 1000)
+
+    return {
+        "requirement_text": requirement_text,
+        "language": payload.get("language", "Dutch"),
+        "available_spaces": payload.get("available_spaces"),
+        "available_doors": payload.get("available_doors"),
+        "input_source_mode": "page_finder",
+        "page_selection_method": selection.method,
+        "page_finder_strategy": page_finder_strategy,
+        "selected_pages": selection.relevant_pages,
+        "page_scores": selection.page_scores,
+        "source_pdf_path": str(pdf_path),
+        "pdf_extraction_ms": pdf_extraction_ms,
+    }
 
 
 def validate_output(raw_text: str) -> "AccessControlSchema":

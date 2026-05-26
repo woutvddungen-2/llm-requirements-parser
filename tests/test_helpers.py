@@ -1,4 +1,33 @@
 from tests.helpers import normalize_for_comparison
+from tests.helpers import load_case_input
+
+
+def test_load_case_input_text_mode(tmp_path):
+    case_dir = tmp_path / "case"
+    case_dir.mkdir()
+    (case_dir / "input.json").write_text(
+        '{"requirement_text": "Demo text", "available_spaces": ["A"], "available_doors": []}',
+        encoding="utf-8",
+    )
+
+    loaded = load_case_input(case_dir)
+
+    assert loaded["requirement_text"] == "Demo text"
+    assert loaded["input_source_mode"] == "text"
+
+
+def test_load_case_input_prefers_requirement_text_when_present(tmp_path):
+    case_dir = tmp_path / "case"
+    case_dir.mkdir()
+    (case_dir / "input.json").write_text(
+        '{"requirement_text": "Demo text", "pdf_path": "demo.pdf", "available_spaces": ["A"], "available_doors": []}',
+        encoding="utf-8",
+    )
+
+    loaded = load_case_input(case_dir)
+
+    assert loaded["requirement_text"] == "Demo text"
+    assert loaded["input_source_mode"] == "text"
 
 
 def test_normalize_for_comparison_merges_duplicate_door_rules():

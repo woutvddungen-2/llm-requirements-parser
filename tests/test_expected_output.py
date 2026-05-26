@@ -24,7 +24,7 @@ def discover_cases() -> list[Path]:
     tests = sorted([p for p in CASES_DIR.iterdir() if p.is_dir()])
     return [
         p for p in tests
-        if ((p / "input.json").exists() or (p / "input.txt").exists())
+        if (p / "input.json").exists()
         and (p / "expected.json").exists()
         and not p.name.startswith("ignore_")
     ]
@@ -35,6 +35,7 @@ def test_extraction_matches_expected(
     case_dir: Path,
     model: str,
     use_few_shot,
+    page_finder_strategy: str,
     request,
 ) -> None:
     """Test extraction accuracy with optional few-shot prompting.
@@ -42,19 +43,21 @@ def test_extraction_matches_expected(
     Parameters:
         case_dir: Test case directory
         model: LLM model to use (vendor:model_name)
-        use_few_shot: Whether to use few-shot examples
+        use_few_shot: Whether to include dynamic few-shot examples
+        page_finder_strategy: Explicit page selection strategy for PDF-backed cases
         request: Pytest request object used to lazily load few-shot fixtures
     
     Usage:
-        pytest tests/ --models gemini --use-few-shot both -v
-        pytest tests/ --models gemini,openai --use-few-shot both --count 3 -n auto -v
+        pytest tests/test_expected_output.py --models openai:gpt-5.4 -v
+        pytest tests/test_expected_output.py --models openai:gpt-5.4,anthropic:claude-sonnet-4-5 --use-few-shot both --count 3 -n auto -v
+        pytest tests/test_expected_output.py --models openai:gpt-5.4 --page-finder-strategy keyword -k 051_real_test_1 -v
     """
+    total_started = perf_counter()
     expected_path = case_dir / "expected.json"
-    case_input = load_case_input(case_dir)
+    case_input = load_case_input(case_dir, page_finder_strategy=page_finder_strategy)
     requirement_text = case_input["requirement_text"]
     expected = load_json(expected_path)
     run_id = get_run_id()
-    total_started = perf_counter()
     
     # Build few-shot context if requested
     few_shot_context_str = None
@@ -97,6 +100,7 @@ def test_extraction_matches_expected(
             "case": case_dir.name,
             "model": model,
             "use_few_shot": use_few_shot,
+            "source_mode": case_input.get("input_source_mode"),
             "passed": False,
             "input": requirement_text,
             "expected": expected,
@@ -107,10 +111,15 @@ def test_extraction_matches_expected(
             "started_at": llm_result.started_at,
             "completed_at": llm_result.completed_at,
             "duration_ms": llm_result.duration_ms,
+            "pdf_extraction_ms": case_input.get("pdf_extraction_ms", 0),
             "few_shot_setup_ms": few_shot_setup_ms,
             "total_duration_ms": total_duration_ms,
             "input_tokens": llm_result.input_tokens,
             "output_tokens": llm_result.output_tokens,
+            "selected_pages": case_input.get("selected_pages"),
+            "page_selection_method": case_input.get("page_selection_method"),
+            "page_finder_strategy": case_input.get("page_finder_strategy"),
+            "source_pdf_path": case_input.get("source_pdf_path"),
             "error": str(ex),
         }
         log_result(entry)
@@ -145,6 +154,7 @@ def test_extraction_matches_expected(
         "case": case_dir.name,
         "model": model,
         "use_few_shot": use_few_shot,
+        "source_mode": case_input.get("input_source_mode"),
         "passed": passed,
         "input": requirement_text,
         "expected": expected,
@@ -155,10 +165,15 @@ def test_extraction_matches_expected(
         "started_at": llm_result.started_at,
         "completed_at": llm_result.completed_at,
         "duration_ms": llm_result.duration_ms,
+        "pdf_extraction_ms": case_input.get("pdf_extraction_ms", 0),
         "few_shot_setup_ms": few_shot_setup_ms,
         "total_duration_ms": total_duration_ms,
         "input_tokens": llm_result.input_tokens,
         "output_tokens": llm_result.output_tokens,
+        "selected_pages": case_input.get("selected_pages"),
+        "page_selection_method": case_input.get("page_selection_method"),
+        "page_finder_strategy": case_input.get("page_finder_strategy"),
+        "source_pdf_path": case_input.get("source_pdf_path"),
     }
     log_result(entry)
 
@@ -170,7 +185,7 @@ def test_extraction_matches_expected(
             f"\nRUN_ID: {run_id}"
             f"\nMODEL: {model}{rag_str}"
             f"\nCASE: {case_dir.name}"
-            f"\nDURATION_MS: llm={llm_result.duration_ms}, few_shot_setup={few_shot_setup_ms}, total={total_duration_ms}"
+            f"\nDURATION_MS: pdf_extraction={case_input.get('pdf_extraction_ms', 0)}, llm={llm_result.duration_ms}, few_shot_setup={few_shot_setup_ms}, total={total_duration_ms}"
             f"\nTOKENS: in={llm_result.input_tokens}, out={llm_result.output_tokens}"
             f"\n\nDIFF:\n{diff}",
             pytrace=False,
