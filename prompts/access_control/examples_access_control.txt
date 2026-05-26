@@ -33,7 +33,7 @@ Example 2
 
 Input:
 
-Ik wil dat alle buitendeuren motorsloten krijgen en alle binnendeuren sluitplaten, behalve de serverruimte, deze krijgt een magneetgrendel.
+Alle buitendeuren krijgen motorsloten. Alle binnendeuren krijgen sluitplaten, behalve ruimte X; die krijgt een magneetslot.
 
 Output:
 
@@ -50,7 +50,7 @@ Output:
       {
         "areas": ["serverruimte"],
         "lock_type": "MAGNETIC_LOCK",
-        "description": "Serverruimte krijgt een magneetgrendel"
+        "description": "Ruimte X krijgt een magneetslot"
       },
       {
         "areas": ["overige binnendeuren"],
@@ -102,28 +102,26 @@ Output:
   }
 }
 
-Example 4 - long paragraph with repeated clauses and merging
+Example 4 - repeated clauses, one known boundary door
 
 Input:
-In het distributiecentrum krijgt de personeelsingang aan de voorzijde aan weerszijden kaartlezers, een intercom, een sluit- en alarmeringsmechanisme en een signaal bij openen.
-Dezelfde personeelsingang krijgt daarnaast een nooddrukknop aan de binnenzijde.
-In de scheiding tussen het open magazijngedeelte en het gesloten magazijngedeelte komt door derden een intercom, zowel direct achter de toegang tot het gesloten gedeelte als naast de deur in het open gedeelte.
-De nooddeur bij de expeditieruimte krijgt een slot met dag- en nachtslot en een signaleringssysteem dat een signaal afgeeft wanneer de nooddeur wordt geopend.
-De toegangscontrolecentrales worden onderling met een databus verbonden.
+Toegang X krijgt aan weerszijden kaartlezers, een intercom, een sluitmechanisme en een noodknop.
+De deurstandmelder van deze toegang geeft een signaal bij openen.
+In de scheiding tussen zone Y en zone Z komt een intercom, zowel direct achter de toegang als naast de deur aan de andere zijde.
+De nooddeur bij ruimte Q krijgt een dag- en nachtslot en een signaleringssysteem.
+De toegangscontrolecentrales worden met een databus verbonden.
 
 Available spaces:
-- Entree
-- Open magazijngedeelte
-- Gesloten magazijngedeelte
-- Expeditieruimte
+- X
+- Y
+- Z
+- Q
 
 Available doors:
-door_21: OUTSIDE <-> Entree, external=true
-door_22: Entree <-> Open magazijngedeelte, external=false
-door_23: Open magazijngedeelte <-> Gesloten magazijngedeelte, external=false
-door_24: Expeditieruimte <-> OUTSIDE, external=true
-
-Output:
+door_21: OUTSIDE <-> X, external=true
+door_22: X <-> Y, external=false
+door_23: Y <-> Z, external=false
+door_24: Q <-> OUTSIDE, external=true
 
 {
   "system_type": "ACCESS_CONTROL",
@@ -131,34 +129,37 @@ Output:
   "requirements": {
     "door_rules": [
       {
-        "areas": ["Entree"],
+        "areas": ["X"],
+        "connects_to_areas": ["OUTSIDE"],
         "door_id": "door_21",
+        "reader_direction": "IN_OUT",
         "reader_types": ["CARD", "INTERCOM"],
         "lock_type": "OTHER",
         "emergency_button": "STANDALONE",
         "door_sensor": true,
-        "description": "Personeelsingang aan de voorzijde krijgt kaartlezers, intercom, een sluit- en alarmeringsmechanisme, een signaal bij openen en een nooddrukknop aan de binnenzijde"
+        "description": "Toegang X krijgt aan weerszijden kaartlezers, een intercom, een sluitmechanisme, een noodknop en een deurstandmelder"
       },
       {
-        "areas": ["Gesloten magazijngedeelte"],
+        "areas": ["Z"],
         "door_id": "door_23",
         "reader_types": ["INTERCOM"],
-        "description": "Intercom op de grensdeur naar het gesloten magazijngedeelte, met zowel een positie direct achter de toegang tot het gesloten magazijngedeelte als naast de deur in het open magazijngedeelte"
+        "description": "Intercom op de grensdeur tussen zone Y en zone Z, beschreven vanaf beide zijden"
       },
       {
-        "areas": ["Expeditieruimte"],
+        "areas": ["Q"],
+        "connects_to_areas": ["OUTSIDE"],
         "door_id": "door_24",
         "lock_type": "OTHER",
         "door_sensor": true,
-        "description": "Nooddeur bij de expeditieruimte krijgt een slot met dag- en nachtslot en een signaleringssysteem dat een signaal afgeeft wanneer de nooddeur wordt geopend"
+        "description": "Nooddeur bij ruimte Q krijgt een dag- en nachtslot en een signaleringssysteem"
       }
     ],
     "controller_rules": [
       {
         "areas": [],
-        "manages_door_areas": ["Entree", "Open magazijngedeelte", "Gesloten magazijngedeelte", "Expeditieruimte"],
+        "manages_door_areas": ["X", "Q"],
         "connection_type": "BUS",
-        "description": "Toegangscontrolecentrales worden onderling met een databus verbonden"
+        "description": "Toegangscontrolecentrales worden met een databus verbonden"
       }
     ]
   }

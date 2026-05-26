@@ -10,7 +10,11 @@ def load_json(path: Path) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def load_case_input(case_dir: Path, page_finder_strategy: str = "keyword") -> dict[str, Any]:
+def load_case_input(
+    case_dir: Path,
+    page_finder_strategy: str = "keyword",
+    page_finder_model: str | None = None,
+) -> dict[str, Any]:
     """
     Load benchmark input in the same shape as the main API usage.
 
@@ -31,6 +35,7 @@ def load_case_input(case_dir: Path, page_finder_strategy: str = "keyword") -> di
                 payload,
                 input_json,
                 page_finder_strategy=page_finder_strategy,
+                page_finder_model=page_finder_model,
             )
 
         if "requirement_text" not in payload:
@@ -52,6 +57,7 @@ def _load_pdf_backed_case_input(
     payload: dict[str, Any],
     input_json_path: Path,
     page_finder_strategy: str,
+    page_finder_model: str | None,
 ) -> dict[str, Any]:
     pdf_path_value = payload.get("pdf_path")
     if not pdf_path_value:
@@ -72,7 +78,7 @@ def _load_pdf_backed_case_input(
     selection = find_relevant_pages(
         pdf_path=pdf_path,
         strategy=page_finder_strategy,
-        model=payload.get("page_finder_model"),
+        model=page_finder_model or payload.get("page_finder_model"),
     )
     requirement_text = build_requirement_text_from_pages(
         selection.page_texts,

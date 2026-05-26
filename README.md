@@ -91,6 +91,11 @@ Benchmark cases and knowledge-base examples use `input.json` with this shape:
 
 The benchmark uses `input.json` cases only.
 
+When `input.json` contains:
+
+- `requirement_text`: the benchmark uses that text directly
+- `pdf_path` without `requirement_text`: the benchmark first runs PDF page selection and text extraction
+
 ## Few-Shot Retrieval
 
 Few-shot examples are dynamic.
@@ -146,17 +151,25 @@ Run one case:
 pytest tests/test_expected_output.py -k 004_group_with_addition --models openai:gpt-5.2 --use-few-shot standard -n auto
 ```
 
+Run a PDF-backed case with an explicit page-finder strategy:
+
+```bash
+pytest tests/test_expected_output.py -k 051_real_test_1 --models openai:gpt-5.4 --pdf-strategy keyword -n 1 -v
+```
+
 Useful pytest options:
 
 - `-q` for quieter output
 - `-v` for verbose case names
 - `-n auto` for parallel execution
 - `--count 5` to repeat a case multiple times
+- `--pdf-strategy toc|keyword|regex|llm` for PDF-backed page selection experiments
 
 ## Timing Fields
 
 Benchmark logs now record:
 
+- `pdf_extraction_ms`: PDF loading, page selection, and selected-page text assembly
 - `duration_ms`: LLM call time only
 - `few_shot_setup_ms`: retrieval and context assembly time
 - `total_duration_ms`: full wall-clock time for the case

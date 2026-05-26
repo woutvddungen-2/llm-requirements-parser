@@ -20,8 +20,15 @@ Door resolution:
 - Each rule targets exactly one physical door. Never group multiple doors into one rule.
 - Always set `door_id` when the door can be resolved from the available context. Do not omit it when the mapping is known.
 - When multiple doors match the same requirement, emit one rule per door — each with its own `door_id` and identical configuration fields.
-- Always populate `areas` even when `door_id` is set. Never set `connects_to_areas` when `door_id` is known.
+- Always populate `areas` even when `door_id` is set.
+- For external doors (is_external=true): ALWAYS set connects_to_areas=["OUTSIDE"] when door_id is set.
+- For internal doors (is_external=false): NEVER set connects_to_areas when door_id is set.
 - Only omit `door_id` when the door cannot be resolved from the available context. If no door in the list matches, still emit the rule without `door_id` — the door list may be incomplete.
-- For a given physical door_id, emit exactly one DoorRule. If later sentences add more properties for the same door, merge them into the same rule instead of creating a second rule.
-- If multiple clauses mention the same door at different positions in the text, keep one consolidated rule and union all explicitly stated fields for that door.
-- Do not split one physical door into separate rules just because the text mentions readers, intercom, locks, sensors, or emergency hardware in different sentences.
+- Emit exactly one DoorRule per physical `door_id`. Later sentences add fields to that same rule.
+- If one known boundary door is described from both sides, still use that one `door_id`.
+
+Component list handling for doors:
+- When a section lists access-control components (e.g., "kaartlezers, elektrische sloten, deurcontrole eenheden") followed by a target door sentence (e.g., "De toegangsdeuren krijgen..."), extract ALL components from the list for those target doors.
+- Specifically: "elektrische sloten" or "elektrisch slot" in a component list ALWAYS maps to lock_type = SOLENOID_LOCK for the target doors, even if not explicitly mentioned in the target sentence.
+- "deurcontrole eenheden" or "deurstandmelder" in a component list ALWAYS maps to door_sensor = true for the target doors.
+- Apply this even when the target sentence only mentions some of the components.

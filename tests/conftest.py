@@ -1,15 +1,40 @@
 """Pytest configuration for requirement extraction tests.
 
 Usage:
-    pytest tests/test_expected_output.py --models openai:gpt-5.4
-    pytest tests/test_expected_output.py --models openai:gpt-5.4,anthropic:claude-sonnet-4-5 --use-few-shot both -v
-    pytest tests/test_expected_output.py --models openai:gpt-5.4 --page-finder-strategy keyword -k 051_real_test_1 -v
-    pytest tests/test_expected_output.py --models openai:gpt-5.4 --count 3 -n auto -v
+    # Single model with single strategy
+    pytest tests/test_expected_output.py --models anthropic:claude-sonnet-4-6 --pdf-strategy keyword
+
+    # Multiple models, multiple strategies, multiple runs with parallel execution
+    pytest tests/test_expected_output.py \
+      --models anthropic:claude-sonnet-4-6,anthropic:claude-haiku-4-5-20251001 \
+      --use-few-shot both \
+      --count 3 \
+      -n auto \
+      -v
+
+    # Test all PDF strategies against a test case
+    pytest tests/test_expected_output.py \
+      --models anthropic:claude-sonnet-4-6 \
+      --pdf-strategy toc,keyword,regex \
+      -k 052_fietsenstalling_toegang \
+      --count 2 \
+      -n auto
+
+    # Cost-effective: simple models on simple cases, powerful models on complex ones
+    pytest tests/test_expected_output.py \
+      --models anthropic:claude-haiku-4-5-20251001,anthropic:claude-sonnet-4-6 \
+      --pdf-strategy toc,keyword \
+      -k "051 or 052" \
+      --count 3 \
+      -n auto
 """
 
 from datetime import UTC, datetime
 import pytest
 from pathlib import Path
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 def pytest_addoption(parser):
@@ -28,11 +53,10 @@ def pytest_addoption(parser):
         help="Test methods: 'false' (no few-shot), 'true' (with few-shot examples), 'both' (default: standard)",
     )
     parser.addoption(
-        "--page-finder-strategy",
+        "--pdf-strategy",
         action="store",
         default="keyword",
-        choices=["toc", "keyword", "llm"],
-        help="Page selection strategy for PDF-backed cases.",
+        help="Page selection strategy for PDF-backed cases (comma-separated for multiple: toc,keyword,regex).",
     )
 
 
@@ -54,7 +78,7 @@ def pytest_generate_tests(metafunc):
     # Parametrize 'use_few_shot'
     if "use_few_shot" in metafunc.fixturenames:
         few_shot_option = metafunc.config.getoption("use_few_shot")
-        
+
         if few_shot_option == "false":
             use_few_shot_values = [False]
             ids = ["no_few_shot"]
@@ -64,8 +88,23 @@ def pytest_generate_tests(metafunc):
         elif few_shot_option == "both":
             use_few_shot_values = [False, True]
             ids = ["no_few_shot", "with_few_shot"]
-        
+
         metafunc.parametrize("use_few_shot", use_few_shot_values, ids=ids)
+
+    # Parametrize 'pdf_strategy' (supports comma-separated values)
+    if "pdf_strategy" in metafunc.fixturenames:
+        raw_strategies = metafunc.config.getoption("pdf_strategy")
+        valid_strategies = {"toc", "keyword", "regex", "llm"}
+        strategies = [s.strip() for s in raw_strategies.split(",") if s.strip()]
+
+        invalid = [s for s in strategies if s not in valid_strategies]
+        if invalid:
+            raise ValueError(f"Invalid pdf-strategy values: {invalid}. Valid choices: {valid_strategies}")
+
+        if not strategies:
+            strategies = ["keyword"]  # default
+
+        metafunc.parametrize("pdf_strategy", strategies, ids=strategies)
 
 
 def pytest_configure(config):
@@ -91,12 +130,6 @@ def pytest_configure(config):
     knowledge_base = load_knowledge_base(kb_dir)
     if knowledge_base:
         create_embeddings(knowledge_base)
-
-
-@pytest.fixture
-def page_finder_strategy(request) -> str:
-    """Return the explicit page-finder strategy configured on the CLI."""
-    return str(request.config.getoption("page_finder_strategy"))
 
 
 def pytest_sessionfinish(session, exitstatus):

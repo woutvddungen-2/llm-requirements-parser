@@ -4,7 +4,7 @@ import os
 from pathlib import Path
 
 
-LOG_DIR = Path("tests/logs")
+LOG_DIR = Path(os.getenv("LLM_LOGS_DIR", "tests/logs"))
 RUN_ID_ENV = "LLM_REQ_RUN_ID"
 RUN_ID_FILE = LOG_DIR / "current_run_id.txt"
 _RUN_ID_CACHE: str | None = None

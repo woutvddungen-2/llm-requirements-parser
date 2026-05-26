@@ -35,7 +35,7 @@ def test_extraction_matches_expected(
     case_dir: Path,
     model: str,
     use_few_shot,
-    page_finder_strategy: str,
+    pdf_strategy: str,
     request,
 ) -> None:
     """Test extraction accuracy with optional few-shot prompting.
@@ -44,17 +44,21 @@ def test_extraction_matches_expected(
         case_dir: Test case directory
         model: LLM model to use (vendor:model_name)
         use_few_shot: Whether to include dynamic few-shot examples
-        page_finder_strategy: Explicit page selection strategy for PDF-backed cases
+        pdf_strategy: Explicit PDF selection strategy for PDF-backed cases
         request: Pytest request object used to lazily load few-shot fixtures
     
     Usage:
         pytest tests/test_expected_output.py --models openai:gpt-5.4 -v
         pytest tests/test_expected_output.py --models openai:gpt-5.4,anthropic:claude-sonnet-4-5 --use-few-shot both --count 3 -n auto -v
-        pytest tests/test_expected_output.py --models openai:gpt-5.4 --page-finder-strategy keyword -k 051_real_test_1 -v
+        pytest tests/test_expected_output.py --models openai:gpt-5.4 --pdf-strategy keyword -k 051_real_test_1 -v
     """
     total_started = perf_counter()
     expected_path = case_dir / "expected.json"
-    case_input = load_case_input(case_dir, page_finder_strategy=page_finder_strategy)
+    case_input = load_case_input(
+        case_dir,
+        page_finder_strategy=pdf_strategy,
+        page_finder_model=model if pdf_strategy == "llm" else None,
+    )
     requirement_text = case_input["requirement_text"]
     expected = load_json(expected_path)
     run_id = get_run_id()

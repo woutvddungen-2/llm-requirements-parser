@@ -23,7 +23,12 @@ A CSV file with these columns:
 | case | 051_real_test_1 |
 | model | anthropic:claude-sonnet-4-6 |
 | use_few_shot | False |
+| source_mode | page_finder |
+| page_finder_strategy | keyword |
+| page_selection_method | Keyword scoring |
+| selected_pages | 44,202,203,204 |
 | passed | True |
+| pdf_extraction_ms | 2714 |
 | duration_ms | 4393 |
 | few_shot_setup_ms | 0 |
 | total_duration_ms | 4397 |

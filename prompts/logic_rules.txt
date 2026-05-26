@@ -35,19 +35,43 @@ INTERPRETATION RULES
    Do not merge distant numbered sections merely because they reuse a generic label such as toegangsdeur, toegangsdeuren, automatische deur, buitendeur, or entree.
    Merge across sections only when the text clearly restates the same physical door by room/boundary or by anaphora such as "dezelfde deur" or "deze deur".
 
-   Cross-sentence component linkage:
-   If one sentence or heading first lists door-scoped access-control components for a subsystem, and the next sentence names the target doors for that same subsystem, carry those components into the target-door rule.
-   Example:
-   - "Voor toegangscontrole worden aangebracht: kaartlezers, elektrische sloten, proximity passen."
-   - "De toegangsdeuren krijgen een kaartlezer en een nooddrukknop."
-   -> the final rule for the toegangsdeuren includes CARD, SOLENOID_LOCK, and the explicit emergency button.
-   Only carry forward door-scoped components such as readers, locks, sensors, and controllers.
-   Do not carry forward generic infrastructure such as leidingaanleg or bekabeling.
-   Apply this linkage only to the same clearly identified target doors.
-   Do not expand a generic component list to every available door in the floorplan.
+   Cross-sentence component linkage (CRITICAL):
+   If one sentence lists door-scoped access-control components for a subsystem (e.g., "Voor toegangscontrole worden aangebracht: ..."),
+   and the immediately following sentence names the specific target doors for that same subsystem (e.g., "De toegangsdeuren krijgen..."),
+   THEN carry forward the components from the list into the target-door rule.
+
+   Key restriction: Only apply this linkage to the SPECIFIC doors named in the target sentence.
+   Do NOT apply it to all available doors or all doors of a type.
+   Do NOT apply it to doors mentioned in different, unrelated subsections.
+
+   Example (CORRECT):
+   - "Voor toegangscontrole worden aangebracht: kaartlezers, elektrische sloten, deurcontrole eenheden, proximity passen."
+   - "De TOEGANGSDEUREN (the external entrance doors) krijgen een kaartlezer en een nooddrukknop."
+   -> Only the externe toegangsdeuren (entrance doors) get:
+      - reader_types: [CARD]
+      - lock_type: SOLENOID_LOCK
+      - door_sensor: true
+      - emergency_button: STANDALONE
+
+   Counter-example (WRONG):
+   - "Voor toegangscontrole worden aangebracht: kaartlezers, elektrische sloten."
+   - "De deuren van alle binnenruimten krijgen een kaartlezer."
+   -> Only use the explicitly named components (kaartlezer).
+   -> Do NOT add elektrische sloten to every interior door just because the first sentence mentioned them for "toegangscontrole".
+   -> Apply linkage only if the target sentence is about the same subsystem (e.g., "De toegangsdeuren" = "toegangscontrole entrance doors").
+
+   Door-scoped components to carry forward: kaartlezers, elektrische sloten, deurcontrole eenheden, deurcontact, deurstandmelder, noodknop, intercom, etc.
+   Do not carry forward generic infrastructure: leidingaanleg, bekabeling, installatiedozen, etc.
+
+   CRITICAL - "toegangsdeuren" references ONLY external doors:
+   "De toegangsdeuren" (without naming specific rooms) refers ONLY to the external doors (is_external: true) connecting to OUTSIDE.
+   Do NOT apply this to interior doors like "deur naar Technische ruimte", "deur naar Woning", or other internal space doors.
+   When "toegangsdeuren" is mentioned without rooms, resolve it to external access doors and apply component linkage ONLY to those doors.
+
    When the later sentence says "toegangsdeur" / "toegangsdeuren" without naming rooms, prefer the resolved exterior access doors connected to OUTSIDE or the explicitly named person/visitor entrance doors.
-   If the linked component list explicitly contains elektrische sloten / elektrisch slot, preserve lock_type = SOLENOID_LOCK even when a different section later adds an exit_device such as elleboogschakelaar or radar.
-   Within one local subsection or numbered block, keep the current resolved target doors active until the text explicitly introduces a new target. Later local sentences about deurstandmelders, noodknoppen, sloten, kaartlezers, or controller wiring apply to those same active target doors unless a new door/group is named.
+   Within one local subsection or numbered block, keep the current resolved target doors active until the text explicitly introduces a new target. Later local sentences about deurstandmelders, noodknoppen, sloten, kaartlezers, intercom, or controller wiring apply to those same active target doors unless a new door/group is named.
+   A sentence "bij de personentoegang" or "bij de entree" belongs to the exterior access door of that entrance. A later sentence about the scheiding / toegang to zone Y or zone Z is a different target and belongs to the boundary door between those sections.
+   If a target door in the current subsection is already resolved to a `door_id`, later wording from the opposite side of that same doorway must update that same `door_id` rule. Do not emit a second mirror rule with only `areas` + `connects_to_areas`.
 
 4. Door logic:
 There are two broad groups:
@@ -67,11 +91,13 @@ There are two broad groups:
    - "De serverruimte krijgt een gezichtscanner" -> the doors of the serverruimte get a gezichtscanner
    - "Directiekantoren krijgen ook een pincodelezer" -> the doors of directiekantoren also get a pincodelezer
    - Intercom instructions belong to the physical access door they describe. "bij de personen toegang" attaches to that access door. "in het gesloten gedeelte direct achter de toegang" and "naast de abonnementdeur in de scheiding tussen open en gesloten gedeelte" both attach to the same boundary door between those sections — create exactly one rule for that boundary door_id and do not split into separate rules for each side.
+   - If both an entrance intercom and a boundary-door intercom are described, keep them as different door targets.
+   - If an entrance door already has card-reader / lock / sensor fields and the text also gives an intercom at that same entrance, merge INTERCOM into that same entrance-door rule.
    - If the same boundary door is described from both sides, keep one DoorRule for that door_id. Choose the protected / destination side as `areas` when one side is clearly the secured side.
-   - If several sentences describe the same door, merge them into one rule.
+   - If several sentences describe the same door, merge them into one rule. Use fields from the most specific / most detailed subsection.
    - Distinct numbered sections or headings stay independent unless the text explicitly links them to the same door.
    - An automatic-door section and an access-control section do not merge just because both mention generic toegangsdeuren. Merge them only if the text makes the same physical door explicit.
-   - When a local access-control subsection explicitly names locks, readers, emergency buttons, or door sensors for resolved target doors, those local fields take precedence over generic automatic-door hardware from a distant section.
+   - CRITICAL PRECEDENCE: When the ACCESS-CONTROL section (e.g., 65.5 Toegangscontrole) explicitly lists components and target doors, use ONLY those fields. Do NOT supplement with fields from other sections (e.g., 65.4 Inbraakdetectie). The access-control section is authoritative for its specified doors.
    - Exit-device hardware (elbow actuators, radar, motion sensors) from a distant automatic-door or accessibility section must NOT be added to access-control door rules. When the access-control section defines a door's properties, exit_device from any other section is ignored entirely — do not add it even as a supplementary field.
 
    Named areas such as serverruimte or directiekantoor are not broad door groups by themselves; only their doors inherit door properties.
@@ -111,7 +137,8 @@ There are two broad groups:
    - kaartlezers aan weerszijden / aan weerszijden voorzien van kaartlezers → reader_types includes CARD and reader_direction = IN_OUT
    - pincodelezer / codelezer / keypad → reader_types includes CODE
    - intercom / spreekunit / personenintercom → reader_types includes INTERCOM when it is clearly the access device
-   - deurcontact / deurcontacten / standmelder / deurstandmelder → door_sensor = true
+   - deurcontact / deurcontacten / standmelder / deurstandmelder / deurcontrole eenheden → door_sensor = true
+   - elektrische sloten / elektrisch slot → lock_type = SOLENOID_LOCK (when found in a component list, carry this forward to all target doors in the same subsection via cross-sentence linkage)
    - MIVA-openingsysteem / elleboogschakelaar / elleboogknop → exit_device = ELBOW_ACTUATED only when this requirement appears within the access-control section itself and explicitly describes the exit mechanism for that specific controlled door. Do not apply from a general automatic-door, building-automation, or accessibility section.
    - radar / aanwezigheidssensor / bewegingssensor → exit_device = MOTION_SENSOR when the text is about exiting through the door
    - nooddrukknop / ontgrendeldrukknop / noodknop → emergency_button = STANDALONE
@@ -160,10 +187,10 @@ areas with door_id:
 - Example: "serverruimte krijgt een paslezer" → areas=["serverruimte"], even if the door also connects to "hal".
 
 connects_to_areas:
-- Only set when `door_id` cannot be resolved AND the text explicitly says "van X naar Y" (naming both spaces).
-- NEVER set connects_to_areas when `door_id` is known — door_id already identifies the door uniquely.
-- NEVER set connects_to_areas just because you know both sides from the door map.
-- NEVER set connects_to_areas because one side is OUTSIDE — `areas` handles reader placement correctly.
+- When `door_id` is known AND the door is external (connects to OUTSIDE), ALWAYS set connects_to_areas = ["OUTSIDE"].
+- When `door_id` is known AND the door is internal (both sides are named spaces), NEVER set connects_to_areas.
+- When `door_id` cannot be resolved, set connects_to_areas only if the text explicitly says "van X naar Y" (naming both spaces).
+- For external doors: door_id identifies the door uniquely, but connects_to_areas = ["OUTSIDE"] must still be included to show it is an external boundary.
 
 Direction mapping for "van X naar Y":
 - X is the source/unsafe side → put X in `connects_to_areas`
