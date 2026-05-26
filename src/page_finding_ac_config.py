@@ -140,19 +140,6 @@ class PageCategoryScores:
             return None
         return max(self.scores, key=self.scores.get)
 
-    @property
-    def is_access_heavy(self) -> bool:
-        """True if ACCESS is primary category and score is significant."""
-        return (self.primary_category == "ACCESS" and
-                self.scores.get("ACCESS", 0) >= 15)
-
-    @property
-    def is_hvac_heavy(self) -> bool:
-        """True if HVAC is primary category and dominates."""
-        hvac_score = self.scores.get("HVAC", 0)
-        access_score = self.scores.get("ACCESS", 0)
-        return hvac_score > 0 and hvac_score >= access_score * 1.5
-
 AC_KEYWORDS: dict[str, int] = {
     "toegangscontrole": 10,
     "kaartlezer": 10,

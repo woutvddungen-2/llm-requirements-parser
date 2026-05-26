@@ -79,11 +79,18 @@ def _load_pdf_backed_case_input(
         pdf_path=pdf_path,
         strategy=page_finder_strategy,
         model=page_finder_model or payload.get("page_finder_model"),
+        category=payload.get("page_finder_category", "ACCESS"),
+        contamination_threshold=float(payload.get("page_finder_contamination_threshold", 0.25)),
     )
-    requirement_text = build_requirement_text_from_pages(
-        selection.page_texts,
-        selection.relevant_pages,
-    )
+
+    # Use extracted content if available (category-based), otherwise build from page selection
+    if selection.extracted_content is not None:
+        requirement_text = selection.extracted_content
+    else:
+        requirement_text = build_requirement_text_from_pages(
+            selection.page_texts,
+            selection.relevant_pages,
+        )
     pdf_extraction_ms = int((perf_counter() - started) * 1000)
 
     return {

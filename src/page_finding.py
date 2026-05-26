@@ -67,6 +67,7 @@ class PageSelection:
     neighbor_pages: list[int] | None = None
     page_result: PageFinderResult | None = None
     category_scores: dict[int, PageCategoryScores] | None = None
+    extracted_content: str | None = None  # For category-based extraction
 
 
 def score_pages_by_category(page_texts: Mapping[int, str]) -> dict[int, PageCategoryScores]:
@@ -100,10 +101,149 @@ def score_pages_by_category(page_texts: Mapping[int, str]) -> dict[int, PageCate
     return results
 
 
+def _extract_paragraphs(text: str) -> list[str]:
+    """Extract paragraphs from text using double-newline and section breaks.
+
+    Tries to find the cleanest breaks:
+    1. Double newlines (most common paragraph breaks)
+    2. Lines starting with numbers/bullets (section breaks)
+    3. Falls back to single newlines if text is dense
+
+    Returns non-empty paragraphs with whitespace normalized.
+    """
+    # First try: split on double newlines (most reliable for structured docs)
+    parts = text.split('\n\n')
+    if len(parts) > 1:
+        paragraphs = [p.strip() for p in parts if p.strip()]
+        if paragraphs:
+            return paragraphs
+
+    # Second try: look for section starts (4.12.21, 65.5, etc. or bullet points)
+    # This handles documents where paragraphs aren't clearly separated
+    section_pattern = re.compile(r'^[\s]*(?:\d+\.[\d.]*|[•\-\*])\s+', re.MULTILINE)
+    section_starts = [(m.start(), m.end()) for m in section_pattern.finditer(text)]
+
+    if len(section_starts) > 1:
+        # Extract content between section starts
+        paragraphs = []
+        for i, (start, end) in enumerate(section_starts):
+            next_start = section_starts[i + 1][0] if i + 1 < len(section_starts) else len(text)
+            section_text = text[start:next_start].strip()
+            if section_text:
+                paragraphs.append(section_text)
+        if paragraphs:
+            return paragraphs
+
+    # Fallback: split on single newlines if text is sparse enough
+    lines = text.split('\n')
+    paragraphs = []
+    current = []
+    for line in lines:
+        line = line.strip()
+        if not line:
+            if current:
+                paragraphs.append(' '.join(current))
+                current = []
+        else:
+            current.append(line)
+    if current:
+        paragraphs.append(' '.join(current))
+
+    return [p for p in paragraphs if p]
+
+
+def _score_text_on_categories(text: str) -> dict[str, int]:
+    """Score a piece of text on all 6 categories.
+
+    Returns dict of {category_name: score}.
+    """
+    scores = {}
+    text_lower = text.lower()
+
+    for category_name, category_config in SECTION_CATEGORIES.items():
+        category_score = 0
+
+        # Score by keywords
+        for keyword, weight in category_config["keywords"].items():
+            if keyword.lower() in text_lower:
+                category_score += weight
+
+        # Score by regex patterns
+        for pattern_str, weight in category_config["regex"]:
+            pattern = re.compile(pattern_str, re.IGNORECASE)
+            if pattern.search(text):
+                category_score += weight
+
+        scores[category_name] = category_score
+
+    return scores
+
+
+def extract_content_by_category(
+    pdf_path: str | Path,
+    target_category: str = "ACCESS",
+    contamination_threshold: float = 0.25,
+) -> tuple[str, dict[int, PageCategoryScores]]:
+    """Extract clean content for a specific category from a PDF.
+
+    Args:
+        pdf_path: Path to PDF
+        target_category: Which category to extract (e.g., "ACCESS")
+        contamination_threshold: If other categories score > this fraction of target,
+                                 reject the paragraph (0.25 = 25%)
+
+    Returns:
+        (clean_content_text, page_category_scores_for_debugging)
+
+    The algorithm:
+    1. Score every page on all categories
+    2. For pure pages (target dominates), include all content
+    3. For mixed pages, split into paragraphs and include only clean ones
+    4. A paragraph is clean if other categories < 25% of target category score
+    """
+    page_texts = load_pdf_page_texts(pdf_path)
+    page_scores = score_pages_by_category(page_texts)
+
+    content_segments = []
+
+    for page_num in sorted(page_texts.keys()):
+        page_text = page_texts[page_num]
+        page_cs = page_scores[page_num]
+
+        target_score = page_cs.scores.get(target_category, 0)
+        other_scores = [s for cat, s in page_cs.scores.items() if cat != target_category]
+        max_other = max(other_scores) if other_scores else 0
+
+        # Pure page: target dominates significantly
+        if max_other < target_score * contamination_threshold:
+            content_segments.append(page_text)
+            continue
+
+        # Mixed page: extract paragraphs and filter
+        if target_score > 0:
+            paragraphs = _extract_paragraphs(page_text)
+            for para in paragraphs:
+                para_scores = _score_text_on_categories(para)
+                para_target = para_scores.get(target_category, 0)
+                para_others = [s for cat, s in para_scores.items() if cat != target_category]
+                para_max_other = max(para_others) if para_others else 0
+
+                # Include if paragraph is clean (target dominates)
+                if para_target > 0 and para_max_other < para_target * contamination_threshold:
+                    content_segments.append(para)
+
+    # Concatenate all clean segments
+    clean_content = "\n\n".join(content_segments)
+
+    return clean_content, page_scores
+
+
 def find_relevant_pages(
     pdf_path: str | Path,
     strategy: str,
     model: str | None = None,
+    category: str = "ACCESS",
+    contamination_threshold: float = 0.25,
 ) -> PageSelection:
     """Select relevant access-control pages using one explicit strategy."""
     if strategy not in PAGE_FINDER_STRATEGIES:
@@ -210,17 +350,21 @@ def find_relevant_pages(
         raise ValueError(f"No relevant pages found via hybrid scoring for {pdf_path}.")
 
     if strategy == "category":
-        category_scores = score_pages_by_category(page_texts)
-        relevant_pages = _find_from_category_scores(category_scores)
-        if relevant_pages:
+        extracted_content, category_scores = extract_content_by_category(
+            pdf_path,
+            target_category=category,
+            contamination_threshold=contamination_threshold,
+        )
+        if extracted_content.strip():
             return PageSelection(
-                method="Category-based filtering (ACCESS/FIRE/CAMERA, no HVAC-heavy)",
-                relevant_pages=relevant_pages,
-                page_scores={p: 0 for p in relevant_pages},  # Not used, but required
+                method=f"Category-based content extraction ({category}, contamination_threshold={contamination_threshold})",
+                relevant_pages=[],  # Not used for content-based extraction
+                page_scores={},
                 page_texts=page_texts,
                 category_scores=category_scores,
+                extracted_content=extracted_content,
             )
-        raise ValueError(f"No relevant pages found via category filtering for {pdf_path}.")
+        raise ValueError(f"No clean {category} content found via category filtering for {pdf_path}.")
 
     if not model:
         raise ValueError(
@@ -713,49 +857,3 @@ def _find_via_llm(
     )
 
 
-def _find_from_category_scores(category_scores: dict[int, PageCategoryScores]) -> list[int]:
-    """Select pages based on category classification.
-
-    Prioritizes PURE access-related pages (where ACCESS dominates) while including
-    supporting pages (FIRE for emergency doors, CAMERA for surveillance).
-
-    Logic:
-    - PRIMARY filter: ACCESS pages with score >=20 and low contamination from other categories
-    - SECONDARY filter: FIRE pages (>=20) or CAMERA pages (>=25)
-    - REJECT: HVAC-heavy pages (HVAC score >> ACCESS score)
-    - REJECT: Highly mixed pages (multiple categories with similar high scores)
-    """
-    accepted_pages = []
-
-    for page_num in sorted(category_scores.keys()):
-        cs = category_scores[page_num]
-
-        # Reject if HVAC is heavily dominant
-        if cs.is_hvac_heavy:
-            continue
-
-        primary = cs.primary_category
-        primary_score = cs.scores.get(primary, 0)
-        other_scores = [s for cat, s in cs.scores.items() if cat != primary]
-        max_other = max(other_scores) if other_scores else 0
-
-        # Reject if multiple categories have similar high scores (mixed content)
-        high_competition = sum(1 for s in other_scores if s >= primary_score * 0.7)
-        if high_competition >= 2:  # 2+ other categories at 70%+ of primary score = too mixed
-            continue
-
-        # Include PURE ACCESS pages
-        if primary == "ACCESS" and primary_score >= 20:
-            accepted_pages.append(page_num)
-        # Include supporting categories at higher thresholds
-        elif primary == "FIRE" and primary_score >= 25:
-            accepted_pages.append(page_num)
-        elif primary == "CAMERA" and primary_score >= 30:
-            accepted_pages.append(page_num)
-
-    # Sort by ACCESS score (highest first), then by page number
-    accepted_pages.sort(
-        key=lambda p: (-category_scores[p].scores.get("ACCESS", 0), p)
-    )
-
-    return accepted_pages
