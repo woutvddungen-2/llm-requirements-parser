@@ -242,6 +242,8 @@ def _merge_list_values(left: list[Any], right: list[Any]) -> list[Any]:
             continue
         seen.add(marker)
         merged.append(item)
+    if all(isinstance(item, str) for item in merged):
+        return sorted(merged)
     return merged
 
 

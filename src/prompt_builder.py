@@ -73,24 +73,45 @@ class PromptBuilder:
             return ""
 
         exterior_access = []
+        residential_unit_doors = []
+        shared_internal_doors = []
         for door in self.available_doors:
             door_id = door.get("door_id") or door.get("name") or "UNKNOWN_DOOR"
             is_external = bool(door.get("is_external", False))
-            if not is_external:
-                continue
             space_a = self._normalize_space_label(door.get("space_a"), is_external)
             space_b = self._normalize_space_label(door.get("space_b"), is_external)
-            protected = space_b if space_a == "OUTSIDE" else space_a
-            exterior_access.append(f"{door_id} -> {protected}")
 
-        if not exterior_access:
+            if is_external:
+                protected = space_b if space_a == "OUTSIDE" else space_a
+                exterior_access.append(f"{door_id} -> {protected}")
+                continue
+
+            lower_a = space_a.lower()
+            lower_b = space_b.lower()
+            if any(term in lower_a or term in lower_b for term in ("studio", "woning", "appartement", "unit")):
+                residential_unit_doors.append(f"{door_id}: {space_a} <-> {space_b}")
+            elif any(term in lower_a or term in lower_b for term in ("gemeenschappelijk", "algemeen", "hal", "entree", "corridor", "gang", "lobby")):
+                shared_internal_doors.append(f"{door_id}: {space_a} <-> {space_b}")
+
+        if not exterior_access and not residential_unit_doors and not shared_internal_doors:
             return ""
 
-        return (
+        hints = (
             "\n\nDerived targeting hints from this floorplan:\n"
-            f"- Exterior access doors from OUTSIDE: {'; '.join(exterior_access)}\n"
-            "- When the text says personentoegang, toegangsdeur, toegangsdeuren, personeelsingang, bezoekerstoegang, or entree without naming a different interior boundary, prefer one of these exterior access doors.\n"
         )
+        if exterior_access:
+            hints += (
+                f"- Exterior access doors from OUTSIDE: {'; '.join(exterior_access)}\n"
+                "- When the text says personentoegang, toegangsdeur, toegangsdeuren, personeelsingang, bezoekerstoegang, or entree without naming a different interior boundary, prefer one of these exterior access doors.\n"
+            )
+        if shared_internal_doors:
+            hints += f"- Shared internal circulation doors: {'; '.join(shared_internal_doors)}\n"
+        if residential_unit_doors:
+            hints += (
+                f"- Individual unit doors: {'; '.join(residential_unit_doors)}\n"
+                "- If the text says individual units open with ordinary keys, do not place building-wide tag/intercom hardware on these unit doors.\n"
+            )
+        return hints
 
     def build(self, requirement_text: str) -> str:
         spaces_context = self._build_spaces_context()

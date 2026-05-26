@@ -56,7 +56,7 @@ def pytest_addoption(parser):
         "--pdf-strategy",
         action="store",
         default="keyword",
-        help="Page selection strategy for PDF-backed cases (comma-separated for multiple: toc,keyword,regex).",
+        help="Page selection strategy for PDF-backed cases (comma-separated for multiple: toc,keyword,regex,hybrid,llm).",
     )
 
 
@@ -94,7 +94,7 @@ def pytest_generate_tests(metafunc):
     # Parametrize 'pdf_strategy' (supports comma-separated values)
     if "pdf_strategy" in metafunc.fixturenames:
         raw_strategies = metafunc.config.getoption("pdf_strategy")
-        valid_strategies = {"toc", "keyword", "regex", "llm"}
+        valid_strategies = {"toc", "keyword", "regex", "hybrid", "llm"}
         strategies = [s.strip() for s in raw_strategies.split(",") if s.strip()]
 
         invalid = [s for s in strategies if s not in valid_strategies]

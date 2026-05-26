@@ -1,7 +1,9 @@
 import pytest
 
 from src.page_finding import (
+    _extract_relevant_excerpt,
     _find_from_scores,
+    _find_hybrid_pages,
     _find_from_text_toc,
     _looks_like_toc_page,
     _score_pages_by_regex,
@@ -49,7 +51,7 @@ def test_find_relevant_pages_rejects_unknown_strategy(tmp_path):
     pdf_path.write_text("not a real pdf", encoding="utf-8")
 
     with pytest.raises(ValueError, match="Unknown page-finder strategy"):
-        find_relevant_pages(pdf_path=pdf_path, strategy="hybrid")
+        find_relevant_pages(pdf_path=pdf_path, strategy="bogus")
 
 
 def test_looks_like_toc_page_detects_textual_contents():
@@ -100,3 +102,45 @@ def test_find_from_text_toc_selects_access_control_pages():
 
     assert method == "Text TOC"
     assert pages == [43, 50, 202]
+
+
+def test_extract_relevant_excerpt_skips_inventory_and_keeps_actionable_blocks():
+    text = """
+Algemene voorzieningen
+- Videofoon-/intercom installatie
+- Toegangscontrole parkeergarage
+- Toegangscontrolesysteem fietsenstalling
+
+Toegangscontrolesysteem
+De deuren tussen de algemene verkeersruimten en de parkeergarage zijn in basis gesloten (elektrisch slot).
+Aan de zijde van de parkeergarage wordt er naast de deur een groene melder geplaatst zodat bewoners bij nood kunnen ontgrendelen.
+"""
+
+    excerpt = _extract_relevant_excerpt(text)
+
+    assert "Algemene voorzieningen" not in excerpt
+    assert "groene melder" in excerpt
+    assert "elektrisch slot" in excerpt
+
+
+def test_find_hybrid_pages_prefers_dominant_overlap_cluster():
+    relevant, primary, neighbors = _find_hybrid_pages(
+        kw_relevant=[68, 69, 85, 86, 87],
+        kw_primary=[69, 86],
+        rx_relevant=[68, 69, 81, 82, 83, 86, 87],
+        rx_primary=[69, 81, 86],
+        combined_scores={
+            68: 22,
+            69: 71,
+            81: 54,
+            82: 40,
+            83: 30,
+            85: 2,
+            86: 211,
+            87: 22,
+        },
+    )
+
+    assert relevant == [86, 87]
+    assert primary == [69, 86]
+    assert neighbors == [87]

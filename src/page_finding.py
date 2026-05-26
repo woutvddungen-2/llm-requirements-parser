@@ -23,10 +23,31 @@ from src.page_finding_ac_config import (
 from src.pdf_utils import load_pdf_page_texts, load_pdf_toc
 
 DEFAULT_PAGE_FINDER_MAX_TOKENS = 2048
-PAGE_FINDER_STRATEGIES = ("toc", "keyword", "regex", "llm")
+PAGE_FINDER_STRATEGIES = ("toc", "keyword", "regex", "hybrid", "llm")
 TEXT_TOC_SCAN_LIMIT = 20
 TEXT_TOC_MIN_TOCISH_LINES = 5
 TEXT_TOC_MAX_PAGE_NUMBER = 500
+BLOCK_SCORE_THRESHOLD = 8
+BLOCK_ACTION_HINTS = (
+    "wordt",
+    "worden",
+    "zal",
+    "zullen",
+    "dient",
+    "dienen",
+    "voorzien",
+    "geplaatst",
+    "gerealiseerd",
+    "uitgevoerd",
+    "geopend",
+    "ontgrendelen",
+    "ontgrendeld",
+    "aangesloten",
+    "aangebracht",
+    "kunnen",
+    "moet",
+    "moeten",
+)
 
 
 @dataclass
@@ -118,6 +139,42 @@ def find_relevant_pages(
             )
         raise ValueError(f"No relevant pages found via regex scoring for {pdf_path}.")
 
+    if strategy == "hybrid":
+        regex_scores = _score_pages_by_regex(page_texts, AC_REGEX_PATTERNS)
+        kw_relevant, kw_primary, _ = _find_from_scores(
+            page_scores,
+            SCORE_THRESHOLD,
+            NEIGHBOR_THRESHOLD,
+            HIGH_SCORE_THRESHOLD,
+        )
+        rx_relevant, rx_primary, _ = _find_from_scores(
+            regex_scores,
+            REGEX_SCORE_THRESHOLD,
+            REGEX_NEIGHBOR_THRESHOLD,
+            REGEX_HIGH_SCORE_THRESHOLD,
+        )
+        combined_scores = {
+            page_index: page_scores.get(page_index, 0) + regex_scores.get(page_index, 0)
+            for page_index in page_texts
+        }
+        relevant_pages, primary_pages, neighbor_pages = _find_hybrid_pages(
+            kw_relevant=kw_relevant,
+            kw_primary=kw_primary,
+            rx_relevant=rx_relevant,
+            rx_primary=rx_primary,
+            combined_scores=combined_scores,
+        )
+        if relevant_pages:
+            return PageSelection(
+                method="Keyword+regex consensus",
+                relevant_pages=relevant_pages,
+                page_scores=combined_scores,
+                primary_pages=primary_pages,
+                neighbor_pages=neighbor_pages,
+                page_texts=page_texts,
+            )
+        raise ValueError(f"No relevant pages found via hybrid scoring for {pdf_path}.")
+
     if not model:
         raise ValueError(
             "LLM page selection requires a model. "
@@ -138,13 +195,157 @@ def build_requirement_text_from_pages(
     page_texts: Mapping[int, str],
     relevant_pages: Iterable[int],
 ) -> str:
-    """Join selected pages into one extraction input."""
+    """Join selected pages into one extraction input.
+
+    For noisy PDF pages, keep only the blocks that look like actionable
+    access-control requirements so the extractor sees less inventory-style text.
+    """
     selected = []
     for page_index in sorted(set(relevant_pages)):
         text = page_texts.get(page_index, "").strip()
         if text:
-            selected.append(text)
+            excerpt = _extract_relevant_excerpt(text)
+            selected.append(excerpt or text)
     return "\n\n".join(selected).strip()
+
+
+def _extract_relevant_excerpt(text: str) -> str:
+    blocks = [block.strip() for block in re.split(r"\n\s*\n", text) if block.strip()]
+    if not blocks:
+        return ""
+
+    kept: list[str] = []
+    for idx, block in enumerate(blocks):
+        block_score = _score_text_block(block)
+        if block_score < BLOCK_SCORE_THRESHOLD:
+            continue
+
+        if _looks_like_inventory_block(block):
+            continue
+
+        if idx > 0 and _looks_like_heading_block(blocks[idx - 1]):
+            heading = blocks[idx - 1].strip()
+            if not kept or kept[-1] != heading:
+                kept.append(heading)
+
+        kept.append(block)
+
+    excerpt = "\n\n".join(kept).strip()
+    original_score = _score_text_block(text)
+    excerpt_score = _score_text_block(excerpt) if excerpt else 0
+
+    if (
+        excerpt
+        and len(excerpt) <= int(len(text) * 0.9)
+        and len(excerpt) >= int(len(text) * 0.2)
+        and _retains_enough_signal(excerpt_score, original_score)
+    ):
+        return excerpt
+
+    line_excerpt = _extract_relevant_line_windows(text)
+    line_score = _score_text_block(line_excerpt) if line_excerpt else 0
+    if (
+        line_excerpt
+        and len(line_excerpt) < len(text)
+        and len(line_excerpt) >= int(len(text) * 0.2)
+        and _retains_enough_signal(line_score, original_score)
+    ):
+        return line_excerpt
+
+    return text
+
+
+def _retains_enough_signal(candidate_score: int, original_score: int) -> bool:
+    if original_score <= 0:
+        return bool(candidate_score)
+    return candidate_score >= max(8, int(original_score * 0.45))
+
+
+def _extract_relevant_line_windows(text: str) -> str:
+    lines = [line.rstrip() for line in text.splitlines()]
+    if not lines:
+        return ""
+
+    candidate_indexes: set[int] = set()
+    for idx, raw_line in enumerate(lines):
+        line = raw_line.strip()
+        if not line:
+            continue
+
+        if _contains_actionable_door_sentence(line):
+            candidate_indexes.update(range(max(0, idx - 1), min(len(lines), idx + 3)))
+            continue
+
+        if _looks_like_heading_block(line):
+            lookahead = " ".join(lines[idx:min(len(lines), idx + 4)])
+            if _contains_actionable_door_sentence(lookahead):
+                candidate_indexes.update(range(idx, min(len(lines), idx + 5)))
+            continue
+
+    if not candidate_indexes:
+        return ""
+
+    selected_lines: list[str] = []
+    previous_idx = -2
+    for idx in sorted(candidate_indexes):
+        line = lines[idx].strip()
+        if not line:
+            continue
+        if idx - previous_idx > 1 and selected_lines:
+            selected_lines.append("")
+        selected_lines.append(line)
+        previous_idx = idx
+
+    return "\n".join(selected_lines).strip()
+
+
+def _score_text_block(text: str) -> int:
+    lower = text.lower()
+    keyword_score = sum(score for kw, score in AC_KEYWORDS.items() if _text_contains_keyword(lower, kw))
+    regex_score = 0
+    for pattern, weight in AC_REGEX_PATTERNS:
+        matches = pattern.findall(text)
+        if matches:
+            regex_score += weight * len(matches)
+    return keyword_score + regex_score
+
+
+def _looks_like_inventory_block(text: str) -> bool:
+    lower = text.lower()
+    if any(re.search(rf"\b{re.escape(hint)}\b", lower) for hint in BLOCK_ACTION_HINTS):
+        if _contains_actionable_door_sentence(text):
+            return False
+
+    lines = [line.strip() for line in text.splitlines() if line.strip()]
+    if len(lines) < 4:
+        return False
+
+    short_lines = sum(1 for line in lines if len(line) <= 80)
+    bulletish_lines = sum(1 for line in lines if line.startswith(("-", "•", "o ")))
+    if short_lines >= max(3, len(lines) // 2) or bulletish_lines >= max(2, len(lines) // 2):
+        return not _contains_actionable_door_sentence(text)
+
+    return False
+
+
+def _contains_actionable_door_sentence(text: str) -> bool:
+    patterns = (
+        r"\bdeur(?:en)?\b.{0,80}\b(wordt|worden|zal|zullen|dient|dienen|voorzien|geplaatst|gerealiseerd|geopend|ontgrendeld)\b",
+        r"\b(kaartlezers?|paslezers?|intercom|videofoon|handmelder|groene melder|elleboogschakelaar|elektrisch slot|sluitsysteem)\b.{0,80}\b(wordt|worden|zal|zullen|dient|dienen|voorzien|geplaatst|gerealiseerd|geopend|ontgrendeld)\b",
+    )
+    return any(re.search(pattern, text, re.IGNORECASE | re.DOTALL) for pattern in patterns)
+
+
+def _looks_like_heading_block(text: str) -> bool:
+    normalized = " ".join(text.split())
+    if not normalized or len(normalized) > 120:
+        return False
+    lines = [line.strip() for line in text.splitlines() if line.strip()]
+    if len(lines) > 2:
+        return False
+    if any(ch in normalized for ch in ".:;"):
+        return False
+    return bool(re.search(r"(toegang|toegangscontrole|intercom|beveilig|communicatie|systeem|handmelders?)", normalized, re.IGNORECASE))
 
 
 def _find_from_toc(
@@ -377,6 +578,68 @@ def _find_from_scores(
         if i + delta in page_scores and page_scores[i + delta] >= neighbor_threshold
     }
     return sorted(primary | neighbors), sorted(primary), sorted(neighbors - primary)
+
+
+def _find_hybrid_pages(
+    *,
+    kw_relevant: list[int],
+    kw_primary: list[int],
+    rx_relevant: list[int],
+    rx_primary: list[int],
+    combined_scores: Mapping[int, int],
+) -> tuple[list[int], list[int], list[int]]:
+    kw_set = set(kw_relevant)
+    rx_set = set(rx_relevant)
+    primary_overlap = set(kw_primary) & set(rx_primary)
+    overlap = kw_set & rx_set
+
+    core = primary_overlap or overlap or (set(kw_primary) | set(rx_primary)) or (kw_set | rx_set)
+    if not core:
+        return [], [], []
+
+    expanded = set(core)
+    union_pages = sorted(kw_set | rx_set)
+    for page in union_pages:
+        if page in expanded:
+            continue
+        if combined_scores.get(page, 0) < max(5, NEIGHBOR_THRESHOLD + REGEX_NEIGHBOR_THRESHOLD):
+            continue
+        if any(abs(page - core_page) == 1 for core_page in expanded):
+            expanded.add(page)
+
+    pruned = _prune_to_dominant_clusters(sorted(expanded), combined_scores)
+    return pruned, sorted(core), sorted(set(pruned) - set(core))
+
+
+def _prune_to_dominant_clusters(
+    pages: list[int],
+    page_scores: Mapping[int, int],
+    keep_ratio: float = 0.6,
+) -> list[int]:
+    if not pages:
+        return []
+
+    clusters: list[list[int]] = []
+    current = [pages[0]]
+    for page in pages[1:]:
+        if page == current[-1] + 1:
+            current.append(page)
+        else:
+            clusters.append(current)
+            current = [page]
+    clusters.append(current)
+
+    if len(clusters) <= 1:
+        return pages
+
+    cluster_scores = [sum(page_scores.get(page, 0) for page in cluster) for cluster in clusters]
+    top_score = max(cluster_scores)
+    kept_clusters = [
+        cluster
+        for cluster, score in zip(clusters, cluster_scores, strict=True)
+        if score >= top_score * keep_ratio
+    ]
+    return sorted(page for cluster in kept_clusters for page in cluster)
 
 
 def _find_via_llm(

@@ -50,7 +50,7 @@ def test_extraction_matches_expected(
     Usage:
         pytest tests/test_expected_output.py --models openai:gpt-5.4 -v
         pytest tests/test_expected_output.py --models openai:gpt-5.4,anthropic:claude-sonnet-4-5 --use-few-shot both --count 3 -n auto -v
-        pytest tests/test_expected_output.py --models openai:gpt-5.4 --pdf-strategy keyword -k 051_real_test_1 -v
+        pytest tests/test_expected_output.py --models openai:gpt-5.4 --pdf-strategy hybrid -k 051_real_test_1 -v
     """
     total_started = perf_counter()
     expected_path = case_dir / "expected.json"
