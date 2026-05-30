@@ -70,13 +70,38 @@ def _failures_file() -> Path:
     return LOG_DIR / f"{get_run_id()}_failures.jsonl"
 
 
-def log_result(entry: dict) -> None:
+def _pending_file() -> Path:
+    return LOG_DIR / f"{get_run_id()}_pending.jsonl"
+
+
+def _append_jsonl(path: Path, entry: dict) -> None:
     LOG_DIR.mkdir(parents=True, exist_ok=True)
-    with _results_file().open("a", encoding="utf-8") as f:
+    with path.open("a", encoding="utf-8") as f:
         f.write(json.dumps(entry, ensure_ascii=False, cls=DateTimeEncoder) + "\n")
+
+
+def log_result(entry: dict) -> None:
+    _append_jsonl(_results_file(), entry)
 
 
 def log_failure(entry: dict) -> None:
-    LOG_DIR.mkdir(parents=True, exist_ok=True)
-    with _failures_file().open("a", encoding="utf-8") as f:
-        f.write(json.dumps(entry, ensure_ascii=False, cls=DateTimeEncoder) + "\n")
+    _append_jsonl(_failures_file(), entry)
+
+
+def log_pending(entry: dict) -> None:
+    _append_jsonl(_pending_file(), entry)
+
+
+def read_jsonl(path: Path) -> list[dict]:
+    entries: list[dict] = []
+    if not path.exists():
+        return entries
+
+    with path.open("r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            entries.append(json.loads(line))
+
+    return entries

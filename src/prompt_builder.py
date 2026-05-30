@@ -65,7 +65,9 @@ class PromptBuilder:
             "\nDo not choose a similarly named space if no listed door connects it to the other named space."
             "\nIf no door in this list connects the named spaces, the list may be incomplete — still emit the rule using areas and connects_to_areas without door_id. Never suppress a rule just because no matching door was found."
             "\nOnly use placement side hint fields (exit_device_side_hint, emergency_button_side_hint) when the text explicitly states the side. Never infer or default these."
-            "\nWhen a rule targets a specific door (using door_id), set areas to the space name(s) from the requirement text — not both sides from the door map.\n\n"
+            "\nWhen a rule targets a specific door (using door_id), set areas to the concrete space name(s) for that door — not broad group labels like 'binnendeuren' or 'overige binnendeuren', and not both sides from the door map."
+            "\nIf the requirement talks about a broad group, still map each resolved door_id to its specific room/space name from the door list (for example Entree, Kantine, Kantoor, Serverruimte).\n\n"
+            "For controller_rules, only set `areas` when the controller installation location is explicitly stated. Do not infer controller placement from the doors it manages. When placement is not stated, leave `areas` empty and use `manages_door_areas` for the door scope.\n\n"
         )
 
     def _build_derived_door_hints(self) -> str:

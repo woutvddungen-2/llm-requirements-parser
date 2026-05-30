@@ -89,14 +89,19 @@ def _load_pdf_backed_case_input(
         min_meaningful_score=min_score,
     )
 
-    # Use extracted content if available (category-based), otherwise build from page selection
-    if selection.extracted_content is not None:
+    # For category strategy, the page cluster selection is currently more reliable than
+    # the aggressive chunk-only extraction. Reuse the standard page assembly path so the
+    # benchmark still measures the category selector fairly.
+    page_based_requirement_text = build_requirement_text_from_pages(
+        selection.page_texts,
+        selection.relevant_pages,
+    )
+    if selection.extracted_content is not None and selection.relevant_pages and page_finder_strategy != "category":
+        requirement_text = selection.extracted_content
+    elif selection.extracted_content is not None and not selection.relevant_pages:
         requirement_text = selection.extracted_content
     else:
-        requirement_text = build_requirement_text_from_pages(
-            selection.page_texts,
-            selection.relevant_pages,
-        )
+        requirement_text = page_based_requirement_text
     pdf_extraction_ms = int((perf_counter() - started) * 1000)
 
     return {
@@ -130,6 +135,11 @@ def normalize_for_comparison(data: Any) -> Any:
     - sorts rule lists by areas
     """
     if isinstance(data, dict):
+        if set(data.keys()) in ({"any_of"}, {"all_of"}):
+            key = next(iter(data.keys()))
+            normalized_values = [normalize_for_comparison(value) for value in data[key]]
+            return {key: sorted(normalized_values, key=_stable_json_key)}
+
         filtered = {k: v for k, v in data.items() if k != "description"}
         # connects_to_areas is redundant when door_id is set — strip it before comparing
         if "door_id" in filtered:
@@ -151,10 +161,7 @@ def normalize_for_comparison(data: Any) -> Any:
             normalized_list = _merge_duplicate_door_rules(normalized_list)
             return sorted(
                 normalized_list,
-                key=lambda x: (
-                    "|".join(sorted(x.get("areas", []))),
-                    str(x.get("door_id", "")),
-                )
+                key=_stable_json_key,
             )
         return normalized_list
     
@@ -162,6 +169,111 @@ def normalize_for_comparison(data: Any) -> Any:
     if isinstance(data, str):
         return data.upper()
     return data
+
+
+def matches_expected_output(actual: Any, expected: Any) -> bool:
+    """
+    Return True when actual matches expected, supporting lenient any_of wrappers.
+
+    Example expected JSON:
+        "areas": {"any_of": [["HAL"], ["SERVERRUIMTE"]]}
+        "reader_types": {"any_of": [["CARD"], ["CARD", "WIRELESS_KEYFOB"]]}
+        "lock_type": {"any_of": ["OTHER", null]}
+        "reader_types": {"all_of": ["CARD", "WIRELESS_KEYFOB"]}
+    """
+    actual_normalized = normalize_for_comparison(actual)
+    expected_normalized = normalize_for_comparison(expected)
+    return _matches_expected_normalized(actual_normalized, expected_normalized)
+
+
+def _matches_expected_normalized(actual: Any, expected: Any) -> bool:
+    if isinstance(expected, dict) and set(expected.keys()) == {"any_of"}:
+        return any(_matches_expected_normalized(actual, candidate) for candidate in expected["any_of"])
+
+    if isinstance(expected, dict) and set(expected.keys()) == {"all_of"}:
+        if isinstance(actual, list):
+            return _list_contains_all(actual, expected["all_of"])
+        return all(_matches_expected_normalized(actual, candidate) for candidate in expected["all_of"])
+
+    if isinstance(actual, dict) and isinstance(expected, dict):
+        actual_keys = set(actual.keys())
+        expected_keys = set(expected.keys())
+
+        for key in expected_keys:
+            if key in actual:
+                continue
+            if not _missing_field_matches_expected(expected[key]):
+                return False
+
+        for key in actual_keys - expected_keys:
+            return False
+
+        return all(
+            key not in actual or _matches_expected_normalized(actual[key], expected[key])
+            for key in expected
+        )
+
+    if isinstance(actual, list) and isinstance(expected, list):
+        return _matches_list_unordered(actual, expected)
+
+    return actual == expected
+
+
+def _matches_list_unordered(actual: list[Any], expected: list[Any]) -> bool:
+    """Return True when two lists match as unordered multisets."""
+    if len(actual) != len(expected):
+        return False
+
+    used = [False] * len(actual)
+
+    def backtrack(index: int) -> bool:
+        if index == len(expected):
+            return True
+
+        expected_item = expected[index]
+        for actual_index, actual_item in enumerate(actual):
+            if used[actual_index]:
+                continue
+            if _matches_expected_normalized(actual_item, expected_item):
+                used[actual_index] = True
+                if backtrack(index + 1):
+                    return True
+                used[actual_index] = False
+
+        return False
+
+    return backtrack(0)
+
+
+def _list_contains_all(actual: list[Any], expected_items: list[Any]) -> bool:
+    """Return True when actual contains every expected item, ignoring order."""
+    unmatched = [normalize_for_comparison(item) for item in actual]
+
+    for expected_item in expected_items:
+        expected_normalized = normalize_for_comparison(expected_item)
+        for index, candidate in enumerate(unmatched):
+            if _matches_expected_normalized(candidate, expected_normalized):
+                unmatched.pop(index)
+                break
+        else:
+            return False
+
+    return True
+
+
+def _missing_field_matches_expected(expected: Any) -> bool:
+    """Return True when a missing field is allowed by the expected wrapper."""
+    if isinstance(expected, dict) and set(expected.keys()) == {"any_of"}:
+        return any(_missing_field_matches_expected(candidate) for candidate in expected["any_of"])
+
+    if isinstance(expected, list):
+        return len(expected) == 0
+
+    return expected is None
+
+
+def _stable_json_key(value: Any) -> str:
+    return json.dumps(value, ensure_ascii=False, sort_keys=True)
 
 
 def _merge_duplicate_door_rules(rules: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -279,21 +391,107 @@ def indexed_position(items: list[dict[str, Any]], target: dict[str, Any]) -> int
 
 def focused_diff(expected_text: str, actual_text: str, context: int = 2) -> str:
     """
-    Return a compact unified diff showing only changed lines
-    with a few context lines around them.
-    """
-    diff_lines = list(
-        difflib.unified_diff(
-            expected_text.splitlines(),
-            actual_text.splitlines(),
-            fromfile="expected.json",
-            tofile="actual.json",
-            lineterm="",
-            n=context,
-        )
-    )
+    Return a compact structural diff focused on the actual mismatched fields.
 
-    if not diff_lines:
+    The JSONL logs are easier to read when we point at the field(s) that differ
+    instead of showing a large surrounding block that may contain nearby, but
+    unrelated, changes.
+    """
+    try:
+        expected = normalize_for_comparison(json.loads(expected_text))
+        actual = normalize_for_comparison(json.loads(actual_text))
+    except Exception:
+        diff_lines = list(
+            difflib.unified_diff(
+                expected_text.splitlines(),
+                actual_text.splitlines(),
+                fromfile="expected.json",
+                tofile="actual.json",
+                lineterm="",
+                n=context,
+            )
+        )
+        if not diff_lines:
+            return "No differences."
+        return "\n".join(diff_lines)
+
+    differences = _collect_structural_differences(expected, actual)
+    if not differences:
         return "No differences."
 
-    return "\n".join(diff_lines)
+    lines = ["Differences:"]
+    lines.extend(f"- {item}" for item in differences)
+    return "\n".join(lines)
+
+
+def _collect_structural_differences(expected: Any, actual: Any, path: str = "") -> list[str]:
+    """Collect focused structural diffs with JSON-path-like locations."""
+    if isinstance(expected, dict) and set(expected.keys()) == {"any_of"}:
+        if any(_matches_expected_normalized(actual, candidate) for candidate in expected["any_of"]):
+            return []
+        return [
+            f"{_format_path(path)}: expected any_of {json.dumps(expected['any_of'], ensure_ascii=False, sort_keys=True)}, "
+            f"actual {json.dumps(actual, ensure_ascii=False, sort_keys=True)}"
+        ]
+
+    if isinstance(expected, dict) and set(expected.keys()) == {"all_of"}:
+        if _matches_expected_normalized(actual, expected):
+            return []
+        return [
+            f"{_format_path(path)}: expected all_of {json.dumps(expected['all_of'], ensure_ascii=False, sort_keys=True)}, "
+            f"actual {json.dumps(actual, ensure_ascii=False, sort_keys=True)}"
+        ]
+
+    if isinstance(expected, dict) and isinstance(actual, dict):
+        differences: list[str] = []
+        expected_keys = set(expected.keys())
+        actual_keys = set(actual.keys())
+
+        for key in sorted(expected_keys - actual_keys):
+            differences.append(f"{_format_path(_join_path(path, key))}: missing in actual, expected {json.dumps(expected[key], ensure_ascii=False, sort_keys=True)}")
+
+        for key in sorted(actual_keys - expected_keys):
+            differences.append(f"{_format_path(_join_path(path, key))}: unexpected in actual, actual {json.dumps(actual[key], ensure_ascii=False, sort_keys=True)}")
+
+        for key in sorted(expected_keys & actual_keys):
+            differences.extend(_collect_structural_differences(expected[key], actual[key], _join_path(path, key)))
+        return differences
+
+    if isinstance(expected, list) and isinstance(actual, list):
+        differences: list[str] = []
+        shared = min(len(expected), len(actual))
+        if len(expected) != len(actual):
+            differences.append(
+                f"{_format_path(path)}: length mismatch expected {len(expected)} item(s), actual {len(actual)} item(s)"
+            )
+        for index in range(shared):
+            differences.extend(
+                _collect_structural_differences(expected[index], actual[index], f"{path}[{index}]")
+            )
+        for index in range(shared, len(expected)):
+            differences.append(
+                f"{_format_path(f'{path}[{index}]')}: missing in actual, expected {json.dumps(expected[index], ensure_ascii=False, sort_keys=True)}"
+            )
+        for index in range(shared, len(actual)):
+            differences.append(
+                f"{_format_path(f'{path}[{index}]')}: unexpected in actual, actual {json.dumps(actual[index], ensure_ascii=False, sort_keys=True)}"
+            )
+        return differences
+
+    if expected != actual:
+        return [
+            f"{_format_path(path)}: expected {json.dumps(expected, ensure_ascii=False, sort_keys=True)}, "
+            f"actual {json.dumps(actual, ensure_ascii=False, sort_keys=True)}"
+        ]
+
+    return []
+
+
+def _join_path(base: str, key: str) -> str:
+    if not base:
+        return key
+    return f"{base}.{key}"
+
+
+def _format_path(path: str) -> str:
+    return path or "$"

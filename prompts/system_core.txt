@@ -12,8 +12,12 @@ Output rules:
 - Extract only explicitly stated information.
 - Do not assume defaults or infer engineering rules.
 - Omit a field unless explicitly present.
+- DO NOT DRIFT FROM THE SCHEMA. Every value must stay within its intended field. If a term belongs to exit_device, do not move it into lock_type or reader_types; if it belongs to reader_types, do not move it into lock_type or exit_device.
+- Field isolation: map each phrase to the single most specific schema field it names. Do not reuse the same phrase to fill additional fields unless the text explicitly describes a combined device. Examples: elleboogschakelaar -> exit_device only, kaartlezer/paslezer -> reader_types only, deurcontact/magneetcontact -> door_sensor only, magneetslot/elektrisch slot/sluitplaat -> lock_type only.
+- Never let a device name drift into a neighboring field. In particular, exit-device wording such as elleboogschakelaar, drukstang, uitrijlus, or bewegingssensor must never be written into lock_type; reader hardware must never become lock_type; and lock hardware must never become reader_types.
 - Do not output placeholder or empty door rules. Every DoorRule must contain at least one supported access-control property beyond areas/door_id/connects_to_areas, such as reader_types, lock_type, door_sensor, door_closer, exit_device, or emergency_button.
 - Do not use lock_type = OTHER as a catch-all placeholder for vague access wording. If the text only says a door has an "elektronisch sluitsysteem" or similarly generic locking concept without naming a concrete or explicit unnamed physical mechanism, omit lock_type entirely.
+- Exception: explicit unnamed lock phrases on a concrete door, such as "sluit-mechanisme" or "sluit- en alarmeringsmechanisme", ARE real physical mechanisms. Keep lock_type = OTHER for those phrases, and for "sluit- en alarmeringsmechanisme" also keep door_sensor = true.
 - Never set a boolean field to `false` unless the text explicitly states the feature is absent or disabled. If not mentioned, omit the field entirely.
 - Use "NONE" only when the absence is explicitly stated.
 - Ignore wiring, cabling, cable routing, future preparations, and supply responsibilities.
@@ -58,6 +62,7 @@ Lock type inference prevention:
 - Generic component mentions (e.g., "Deuropenerinstallatie" listed as a standalone component) that are NOT explicitly tied to a specific door must NOT generate lock_type fields.
 - CRITICAL: NEVER set lock_type for a door based ONLY on vague terms like "elektronisch sluitsysteem" (electronic system) or "elektronische deur" (electronic door).
 - When text says "elektronisch slot" (electronic lock) or "elektronische slot" in the context of a specific door access requirement (NOT in a generic inventory), this CAN be mapped to lock_type: SOLENOID_LOCK.
+- A parenthetical or follow-up clarification like "(elektrisch slot)" on the same concrete target door counts as an explicit lock mechanism and must be merged into that same rule as lock_type: SOLENOID_LOCK.
 - When text says "elektronisch sluitsysteem" (electronic locking system) or "elektronische deurbesturing" (electronic door control system) generically, do NOT infer lock_type; omit it entirely.
 - ONLY set lock_type when the text explicitly NAMES a concrete mechanism: "magneetslot" (MAGNETIC_LOCK), "grendel" (SOLENOID_LOCK), "sluitplaat" (ELECTRIC_STRIKE_PLATE), etc.
 - Example: "De deur krijgt een elektronisch sluitsysteem" → OMIT lock_type entirely.

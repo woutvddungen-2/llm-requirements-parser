@@ -124,6 +124,23 @@ Aan de zijde van de parkeergarage wordt er naast de deur een groene melder gepla
     assert "elektrisch slot" in excerpt
 
 
+def test_extract_relevant_excerpt_drops_abstract_gate_block_when_concrete_door_blocks_exist():
+    text = """
+Toegangscontrolesysteem
+De toegangscontrole installatie omvat niet meer dan de open/dichtsturing van de speedgate met eigen afstandsbediening (handzender) door de bewoners zelf.
+
+De deuren tussen de algemene verkeersruimten en de parkeergarage zijn in basis gesloten (elektrisch slot).
+Aan de zijde van de parkeergarage wordt er naast de deur een groene melder geplaatst zodat bewoners bij nood kunnen ontgrendelen.
+"""
+
+    excerpt = _extract_relevant_excerpt(text)
+
+    assert "speedgate" not in excerpt
+    assert "handzender" not in excerpt
+    assert "elektrisch slot" in excerpt
+    assert "groene melder" in excerpt
+
+
 def test_find_hybrid_pages_prefers_dominant_overlap_cluster():
     relevant, primary, neighbors = _find_hybrid_pages(
         kw_relevant=[68, 69, 85, 86, 87],

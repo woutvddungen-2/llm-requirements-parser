@@ -40,6 +40,9 @@ def test_prompt_builder_with_spaces_and_doors():
     assert "door_15: OUTSIDE <-> Entree, external=true" in prompt
     assert "Use ONLY these door IDs when specifying door_id." in prompt
     assert "For 'door from X to Y' / 'deur van X naar Y'" in prompt
+    assert "not broad group labels like 'binnendeuren' or 'overige binnendeuren'" in prompt
+    assert "DO NOT DRIFT FROM THE SCHEMA." in prompt
+    assert "Do not infer controller placement from the doors it manages." in prompt
 
 
 def test_extract_requirements_appends_validation_feedback(monkeypatch):

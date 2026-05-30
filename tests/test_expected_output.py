@@ -2,8 +2,7 @@
 
 from datetime import UTC, datetime
 import json
-from pathlib import Path
-from time import perf_counter
+from time import perf_counter, sleep
 import pytest
 from src.parser import extract_requirements_json
 from src.few_shot import find_similar, build_context
@@ -12,47 +11,113 @@ from tests.helpers import (
     load_json,
     normalize_for_comparison,
     focused_diff,
+    matches_expected_output,
     validate_output,
 )
-from tests.result_logging import log_result, log_failure, get_run_id
-
-CASES_DIR = Path("tests/cases")
+from tests.result_logging import log_result, log_failure, log_pending, get_run_id
 
 
-def discover_cases() -> list[Path]:
-    """Discover all test cases."""
-    tests = sorted([p for p in CASES_DIR.iterdir() if p.is_dir()])
-    return [
-        p for p in tests
-        if (p / "input.json").exists()
-        and (p / "expected.json").exists()
-        and not p.name.startswith("ignore_")
-    ]
+RATE_LIMIT_RETRY_ATTEMPTS = 4
+RATE_LIMIT_BACKOFF_SECONDS = (1.0, 2.0, 4.0)
+RATE_LIMIT_ERROR_MARKERS = (
+    "rate limit",
+    "rate-limited",
+    "rate limited",
+    "quota",
+    "too many requests",
+    "429",
+    "503",
+    "unavailable",
+    "high demand",
+    "resource exhausted",
+    "server overloaded",
+    "try again later",
+)
 
 
-@pytest.mark.parametrize("case_dir", discover_cases(), ids=lambda p: p.name)
-def test_extraction_matches_expected(
-    case_dir: Path,
+class RateLimitRetriesExceeded(Exception):
+    def __init__(self, last_error: Exception, attempts: int):
+        super().__init__(str(last_error))
+        self.last_error = last_error
+        self.attempts = attempts
+
+
+def _exception_chain_text(ex: Exception) -> str:
+    parts = []
+    seen_ids = set()
+    current: Exception | None = ex
+
+    while current is not None and id(current) not in seen_ids:
+        seen_ids.add(id(current))
+        parts.append(f"{type(current).__name__}: {current}")
+        current = current.__cause__ or current.__context__
+
+    return " | ".join(parts).lower()
+
+
+def _is_rate_limited_error(ex: Exception) -> bool:
+    text = _exception_chain_text(ex)
+    return any(marker in text for marker in RATE_LIMIT_ERROR_MARKERS)
+
+
+def _extract_requirements_with_retry(
+    requirement_text: str,
+    *,
     model: str,
-    use_few_shot,
-    pdf_strategy: str,
+    language: str,
+    available_spaces,
+    available_doors,
+    rag_context,
+):
+    last_error: Exception | None = None
+
+    for attempt in range(1, RATE_LIMIT_RETRY_ATTEMPTS + 1):
+        try:
+            return extract_requirements_json(
+                requirement_text,
+                model=model,
+                language=language,
+                available_spaces=available_spaces,
+                available_doors=available_doors,
+                rag_context=rag_context,
+            ), attempt
+        except Exception as ex:
+            if not _is_rate_limited_error(ex):
+                raise
+
+            last_error = ex
+            if attempt >= RATE_LIMIT_RETRY_ATTEMPTS:
+                raise RateLimitRetriesExceeded(ex, attempt) from ex
+
+            sleep(RATE_LIMIT_BACKOFF_SECONDS[attempt - 1])
+
+    assert last_error is not None
+    raise RateLimitRetriesExceeded(last_error, RATE_LIMIT_RETRY_ATTEMPTS)
+
+
+def test_extraction_matches_expected(
+    run_spec,
     request,
 ) -> None:
     """Test extraction accuracy with optional few-shot prompting.
     
     Parameters:
-        case_dir: Test case directory
-        model: LLM model to use (vendor:model_name)
-        use_few_shot: Whether to include dynamic few-shot examples
-        pdf_strategy: Explicit PDF selection strategy for PDF-backed cases
+        run_spec: Single test run configuration from pytest collection
         request: Pytest request object used to lazily load few-shot fixtures
     
     Usage:
         pytest tests/test_expected_output.py --models openai:gpt-5.4 -v
         pytest tests/test_expected_output.py --models openai:gpt-5.4,anthropic:claude-sonnet-4-5 --use-few-shot both --count 3 -n auto -v
         pytest tests/test_expected_output.py --models openai:gpt-5.4 --pdf-strategy hybrid -k 051_real_test_1 -v
+        pytest tests/test_expected_output.py --rerun tests/logs/<run_id>_pending.jsonl -n auto
     """
+    case_dir = run_spec.case_dir
+    model = run_spec.model
+    use_few_shot = run_spec.use_few_shot
+    pdf_strategy = run_spec.pdf_strategy
+
     total_started = perf_counter()
+    llm_result = None
     expected_path = case_dir / "expected.json"
     case_input = load_case_input(
         case_dir,
@@ -83,15 +148,88 @@ def test_extraction_matches_expected(
 
         few_shot_setup_ms = int((perf_counter() - setup_started) * 1000)
 
-    # Run extraction
-    llm_result = extract_requirements_json(
-        requirement_text,
-        model=model,
-        language=case_input.get("language", "Dutch"),
-        available_spaces=case_input.get("available_spaces"),
-        available_doors=case_input.get("available_doors"),
-        rag_context=few_shot_context_str,
-    )
+    llm_attempts = 1
+    try:
+        llm_result, llm_attempts = _extract_requirements_with_retry(
+            requirement_text,
+            model=model,
+            language=case_input.get("language", "Dutch"),
+            available_spaces=case_input.get("available_spaces"),
+            available_doors=case_input.get("available_doors"),
+            rag_context=few_shot_context_str,
+        )
+    except RateLimitRetriesExceeded as ex:
+        total_duration_ms = int((perf_counter() - total_started) * 1000)
+        entry = {
+            "timestamp": datetime.now(UTC).isoformat(),
+            "run_id": run_id,
+            "case": case_dir.name,
+            "model": model,
+            "use_few_shot": use_few_shot,
+            "source_mode": case_input.get("input_source_mode"),
+            "pdf_strategy": pdf_strategy,
+            "attempts": ex.attempts,
+            "max_attempts": RATE_LIMIT_RETRY_ATTEMPTS,
+            "reason": "rate_limited",
+            "error": str(ex.last_error),
+            "input": requirement_text,
+            "expected": expected,
+            "selected_pages": case_input.get("selected_pages"),
+            "page_selection_method": case_input.get("page_selection_method"),
+            "page_finder_strategy": case_input.get("page_finder_strategy"),
+            "source_pdf_path": case_input.get("source_pdf_path"),
+            "total_duration_ms": total_duration_ms,
+        }
+        log_pending(entry)
+
+        rag_str = " (with few-shot)" if use_few_shot else ""
+        pytest.skip(
+            f"\nRUN_ID: {run_id}"
+            f"\nMODEL: {model}{rag_str}"
+            f"\nCASE: {case_dir.name}"
+            f"\nRATE_LIMIT: retried {ex.attempts} times, moved to pending",
+        )
+    except Exception as ex:
+        total_duration_ms = int((perf_counter() - total_started) * 1000)
+        entry = {
+            "timestamp": datetime.now(UTC).isoformat(),
+            "run_id": run_id,
+            "case": case_dir.name,
+            "model": model,
+            "use_few_shot": use_few_shot,
+            "source_mode": case_input.get("input_source_mode"),
+            "passed": False,
+            "input": requirement_text,
+            "expected": expected,
+            "actual": None,
+            "raw_output": getattr(llm_result, "text", None),
+            "diff": None,
+            "similar_cases": [name for name, score in similar_cases],
+            "llm_attempts": llm_attempts,
+            "started_at": getattr(llm_result, "started_at", None),
+            "completed_at": getattr(llm_result, "completed_at", None),
+            "duration_ms": getattr(llm_result, "duration_ms", None),
+            "pdf_extraction_ms": case_input.get("pdf_extraction_ms", 0),
+            "few_shot_setup_ms": few_shot_setup_ms,
+            "total_duration_ms": total_duration_ms,
+            "input_tokens": getattr(llm_result, "input_tokens", None),
+            "output_tokens": getattr(llm_result, "output_tokens", None),
+            "selected_pages": case_input.get("selected_pages"),
+            "page_selection_method": case_input.get("page_selection_method"),
+            "page_finder_strategy": case_input.get("page_finder_strategy"),
+            "source_pdf_path": case_input.get("source_pdf_path"),
+            "error": str(ex),
+        }
+        log_result(entry)
+
+        rag_str = " (with few-shot)" if use_few_shot else ""
+        pytest.fail(
+            f"\nRUN_ID: {run_id}"
+            f"\nMODEL: {model}{rag_str}"
+            f"\nCASE: {case_dir.name}"
+            f"\nEXTRACTION ERROR: {ex}",
+            pytrace=False,
+        )
 
     # Validate JSON
     try:
@@ -112,6 +250,7 @@ def test_extraction_matches_expected(
             "raw_output": llm_result.text,
             "diff": None,
             "similar_cases": [name for name, score in similar_cases],
+            "llm_attempts": llm_attempts,
             "started_at": llm_result.started_at,
             "completed_at": llm_result.completed_at,
             "duration_ms": llm_result.duration_ms,
@@ -148,7 +287,7 @@ def test_extraction_matches_expected(
     expected_pretty = json.dumps(expected_normalized, indent=2, ensure_ascii=False, sort_keys=True)
 
     diff = focused_diff(expected_pretty, actual_pretty, context=2)
-    passed = actual_normalized == expected_normalized
+    passed = matches_expected_output(actual, expected)
     total_duration_ms = int((perf_counter() - total_started) * 1000)
 
     # Log result
@@ -166,6 +305,7 @@ def test_extraction_matches_expected(
         "raw_output": llm_result.text,
         "diff": diff,
         "similar_cases": [name for name, score in similar_cases],
+        "llm_attempts": llm_attempts,
         "started_at": llm_result.started_at,
         "completed_at": llm_result.completed_at,
         "duration_ms": llm_result.duration_ms,

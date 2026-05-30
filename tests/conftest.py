@@ -33,8 +33,38 @@ from datetime import UTC, datetime
 import pytest
 from pathlib import Path
 from dotenv import load_dotenv
+from dataclasses import dataclass
+
+from tests.result_logging import read_jsonl
 
 load_dotenv()
+
+CASES_DIR = Path("tests/cases")
+LOG_DIR = Path("tests/logs")
+
+
+@dataclass(frozen=True)
+class TestRunSpec:
+    case_dir: Path
+    model: str
+    use_few_shot: bool
+    pdf_strategy: str
+
+    @property
+    def node_id(self) -> str:
+        few_shot_id = "with_few_shot" if self.use_few_shot else "no_few_shot"
+        return f"{self.case_dir.name}-{few_shot_id}-{self.pdf_strategy}-{self.model}"
+
+
+def discover_cases() -> list[Path]:
+    """Discover all benchmark cases with inputs and expected output."""
+    tests = sorted([p for p in CASES_DIR.iterdir() if p.is_dir()])
+    return [
+        p for p in tests
+        if (p / "input.json").exists()
+        and (p / "expected.json").exists()
+        and not p.name.startswith("ignore_")
+    ]
 
 
 def pytest_addoption(parser):
@@ -58,13 +88,70 @@ def pytest_addoption(parser):
         default="hybrid",
         help="Page selection strategy for PDF-backed cases (comma-separated for multiple: toc,keyword,regex,hybrid,category,llm).",
     )
+    parser.addoption(
+        "--rerun",
+        action="store",
+        default=None,
+        help="Rerun tests from a logged JSONL file, such as tests/logs/<run_id>_pending.jsonl.",
+    )
+
+
+def _resolve_rerun_path(raw_path: str) -> Path:
+    path = Path(raw_path)
+    if path.exists():
+        return path
+
+    fallback = LOG_DIR / raw_path
+    if fallback.exists():
+        return fallback
+
+    raise FileNotFoundError(f"Rerun file not found: {raw_path}")
+
+
+def _load_rerun_specs(raw_path: str) -> list[TestRunSpec]:
+    path = _resolve_rerun_path(raw_path)
+    entries = read_jsonl(path)
+    if not entries:
+        raise ValueError(f"No entries found in rerun file: {path}")
+
+    specs: list[TestRunSpec] = []
+    for entry in entries:
+        case_name = entry.get("case")
+        model = entry.get("model")
+        use_few_shot = entry.get("use_few_shot")
+        pdf_strategy = entry.get("pdf_strategy") or entry.get("page_finder_strategy") or "hybrid"
+
+        if case_name is None or model is None or use_few_shot is None:
+            raise ValueError(f"Invalid rerun entry missing required fields: {entry}")
+
+        case_dir = CASES_DIR / str(case_name)
+        if not case_dir.exists():
+            raise ValueError(f"Rerun case directory does not exist: {case_dir}")
+
+        if not isinstance(use_few_shot, bool):
+            raise ValueError(f"Invalid rerun use_few_shot value: {use_few_shot!r}")
+
+        specs.append(
+            TestRunSpec(
+                case_dir=case_dir,
+                model=str(model),
+                use_few_shot=use_few_shot,
+                pdf_strategy=str(pdf_strategy),
+            )
+        )
+
+    return specs
 
 
 def pytest_generate_tests(metafunc):
     """Dynamically parametrize tests based on CLI options."""
-    
-    # Parametrize 'model'
-    if "model" in metafunc.fixturenames:
+    if "run_spec" not in metafunc.fixturenames:
+        return
+
+    rerun_path = metafunc.config.getoption("rerun")
+    if rerun_path:
+        run_specs = _load_rerun_specs(rerun_path)
+    else:
         raw_models = metafunc.config.getoption("models")
         if not raw_models:
             raise ValueError(
@@ -73,26 +160,17 @@ def pytest_generate_tests(metafunc):
         models = [m.strip() for m in raw_models.split(",") if m.strip()]
         if not models:
             raise ValueError("No valid models specified")
-        metafunc.parametrize("model", models, ids=models)
-    
-    # Parametrize 'use_few_shot'
-    if "use_few_shot" in metafunc.fixturenames:
-        few_shot_option = metafunc.config.getoption("use_few_shot")
 
+        few_shot_option = metafunc.config.getoption("use_few_shot")
         if few_shot_option == "false":
             use_few_shot_values = [False]
-            ids = ["no_few_shot"]
         elif few_shot_option == "true":
             use_few_shot_values = [True]
-            ids = ["with_few_shot"]
         elif few_shot_option == "both":
             use_few_shot_values = [False, True]
-            ids = ["no_few_shot", "with_few_shot"]
+        else:
+            raise ValueError(f"Invalid use-few-shot value: {few_shot_option}")
 
-        metafunc.parametrize("use_few_shot", use_few_shot_values, ids=ids)
-
-    # Parametrize 'pdf_strategy' (supports comma-separated values)
-    if "pdf_strategy" in metafunc.fixturenames:
         raw_strategies = metafunc.config.getoption("pdf_strategy")
         valid_strategies = {"toc", "keyword", "regex", "hybrid", "category", "llm"}
         strategies = [s.strip() for s in raw_strategies.split(",") if s.strip()]
@@ -104,7 +182,15 @@ def pytest_generate_tests(metafunc):
         if not strategies:
             strategies = ["hybrid"]  # default
 
-        metafunc.parametrize("pdf_strategy", strategies, ids=strategies)
+        run_specs = [
+            TestRunSpec(case_dir=case_dir, model=model, use_few_shot=use_few_shot, pdf_strategy=pdf_strategy)
+            for case_dir in discover_cases()
+            for use_few_shot in use_few_shot_values
+            for pdf_strategy in strategies
+            for model in models
+        ]
+
+    metafunc.parametrize("run_spec", run_specs, ids=lambda spec: spec.node_id)
 
 
 def pytest_configure(config):
@@ -116,7 +202,12 @@ def pytest_configure(config):
 
     set_run_id(datetime.now(UTC).strftime("%Y-%m-%dT%H-%M-%SZ"))
 
-    if config.getoption("use_few_shot") == "false":
+    rerun_path = config.getoption("rerun")
+    needs_few_shot = config.getoption("use_few_shot") != "false"
+    if rerun_path:
+        needs_few_shot = any(spec.use_few_shot for spec in _load_rerun_specs(rerun_path))
+
+    if not needs_few_shot:
         return
 
     from pathlib import Path
