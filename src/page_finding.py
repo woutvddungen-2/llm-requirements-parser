@@ -13,6 +13,7 @@ from src.page_finding_ac_config import (
     AC_REGEX_PATTERNS,
     CATEGORY_CLUSTER_KEEP_RATIO,
     CATEGORY_HIGH_SCORE_MULTIPLIER,
+    CATEGORY_NEIGHBOR_SCORE_CAP,
     CATEGORY_PAGE_SCORE_MAX,
     CATEGORY_PAGE_SCORE_MIN,
     CATEGORY_PAGE_SCORE_PERCENTILE,
@@ -272,7 +273,10 @@ def extract_content_by_categories(
         relevant_pages, _, _ = _find_from_scores(
             scores_for_cat,
             score_threshold=page_score_threshold,
-            neighbor_threshold=max(1, page_score_threshold // 3),
+            neighbor_threshold=min(
+                CATEGORY_NEIGHBOR_SCORE_CAP,
+                max(1, page_score_threshold // 3),
+            ),
             high_score_threshold=max(
                 page_score_threshold + 1,
                 int(page_score_threshold * CATEGORY_HIGH_SCORE_MULTIPLIER),
@@ -304,9 +308,19 @@ def extract_content_by_categories(
 
             # Add chunk to each category buffer if it scores high enough
             for cat in target_categories:
-                if chunk_scores.get(cat, 0) >= chunk_score_threshold:
-                    if cat == "ACCESS" and not _contains_actionable_access_sentence(chunk):
-                        continue
+                qualifies = chunk_scores.get(cat, 0) >= chunk_score_threshold
+                if cat == "ACCESS":
+                    actionable_access = _contains_actionable_access_sentence(chunk)
+                    if actionable_access and max(
+                        chunk_scores.get("ACCESS", 0),
+                        chunk_scores.get("FIRE", 0),
+                        chunk_scores.get("INTRUSION", 0),
+                    ) >= chunk_score_threshold:
+                        qualifies = True
+                    elif not actionable_access:
+                        qualifies = False
+
+                if qualifies:
                     # Use chunk text as dedup key (avoid adding same chunk twice)
                     chunk_key = chunk.strip()
                     if chunk_key not in seen_chunks[cat]:
@@ -457,7 +471,7 @@ def find_relevant_pages(
         if extracted_content:
             threshold_info = "dynamic" if use_dynamic else f"fixed={min_meaningful_score}"
             return PageSelection(
-                method=f"Category-based extraction ({category}, {threshold_info})",
+                method=f"Category-guided page selection ({category}, {threshold_info})",
                 relevant_pages=selected_pages.get(category, []),
                 page_scores={},
                 page_texts=page_texts,
@@ -505,6 +519,8 @@ def _extract_relevant_excerpt(text: str) -> str:
     if not blocks:
         return ""
 
+    has_concrete_door_blocks = any(_contains_concrete_door_target(block) for block in blocks)
+    removed_abstract_gate_block = False
     kept: list[str] = []
     for idx, block in enumerate(blocks):
         block_score = _score_text_block(block)
@@ -512,6 +528,10 @@ def _extract_relevant_excerpt(text: str) -> str:
             continue
 
         if _looks_like_inventory_block(block):
+            continue
+
+        if has_concrete_door_blocks and _looks_like_abstract_gate_subsystem_block(block):
+            removed_abstract_gate_block = True
             continue
 
         if idx > 0 and _looks_like_heading_block(blocks[idx - 1]):
@@ -530,6 +550,13 @@ def _extract_relevant_excerpt(text: str) -> str:
         and len(excerpt) <= int(len(text) * 0.9)
         and len(excerpt) >= int(len(text) * 0.2)
         and _retains_enough_signal(excerpt_score, original_score)
+    ):
+        return excerpt
+
+    if (
+        removed_abstract_gate_block
+        and excerpt
+        and len(excerpt) >= int(len(text) * 0.2)
     ):
         return excerpt
 
@@ -631,11 +658,43 @@ def _contains_actionable_access_sentence(text: str) -> bool:
     if _contains_actionable_door_sentence(text):
         return True
 
+    target_terms = (
+        r"deur(?:en)?|toegangsdeur(?:en)?|toegang|personentoegang|entree|"
+        r"hoofdentree|uitgang|nooddeur(?:en)?|vluchtdeur(?:en)?|nooduitgang|"
+        r"inrit|uitrit|parkeergarage|fietsenstalling|gesloten gedeelte|open gedeelte"
+    )
+    device_terms = (
+        r"toegangscontrolecentrales?|kaartlezers?|paslezers?|intercom|videofoon|"
+        r"deurstandmelders?|deurcontacten?|elektrische sloten|groene melder|"
+        r"handmelder|elleboogschakelaar|sluit- en alarmeringsmechanisme|"
+        r"signaleringssysteem|dag- en nachtslot|paniekslot|ontgrendeldrukknop|nooddrukknop"
+    )
     patterns = (
-        r"\b(toegangscontrolecentrales?|kaartlezers?|paslezers?|intercom|videofoon|deurstandmelders?|deurcontacten?|elektrische sloten|groene melder|handmelder|elleboogschakelaar)\b.{0,100}\b(wordt|worden|zal|zullen|dient|dienen|voorzien|geplaatst|gerealiseerd|aangesloten|doorverbonden|gekoppeld|aangebracht)\b",
-        r"\b(wordt|worden|zal|zullen|dient|dienen|voorzien|geplaatst|gerealiseerd|aangesloten|doorverbonden|gekoppeld|aangebracht)\b.{0,100}\b(toegangscontrolecentrales?|kaartlezers?|paslezers?|intercom|videofoon|deurstandmelders?|deurcontacten?|elektrische sloten|groene melder|handmelder|elleboogschakelaar)\b",
+        rf"\b(?:{target_terms})\b.{{0,120}}\b(?:{device_terms})\b.{{0,120}}\b(wordt|worden|zal|zullen|dient|dienen|voorzien|geplaatst|gerealiseerd|aangesloten|doorverbonden|gekoppeld|aangebracht|geopend|ontgrendeld)\b",
+        rf"\b(?:{device_terms})\b.{{0,120}}\b(?:{target_terms})\b.{{0,120}}\b(wordt|worden|zal|zullen|dient|dienen|voorzien|geplaatst|gerealiseerd|aangesloten|doorverbonden|gekoppeld|aangebracht|geopend|ontgrendeld)\b",
+        rf"\b(wordt|worden|zal|zullen|dient|dienen|voorzien|geplaatst|gerealiseerd|aangesloten|doorverbonden|gekoppeld|aangebracht|geopend|ontgrendeld)\b.{{0,120}}\b(?:{target_terms})\b.{{0,120}}\b(?:{device_terms})\b",
+        r"\b(vluchtdeuren?|nooddeuren?|nooduitgang)\b.{0,240}\b(dag- en nachtslot|paniekslot|signaleringssysteem|gfs|alarmsysteem)\b",
     )
     return any(re.search(pattern, text, re.IGNORECASE | re.DOTALL) for pattern in patterns)
+
+
+def _contains_concrete_door_target(text: str) -> bool:
+    patterns = (
+        r"\bdeur(?:en)?\b.{0,120}\b(voorzien|geplaatst|gerealiseerd|geopend|ontgrendelen|ontgrendeld|kaartlezer|intercom|sluitsysteem|slot|melder)\b",
+        r"\b(personentoegang|abonnementdeur|toegangsdeur(?:en)?|hoofdentree|entree|nooddeur(?:en)?|vluchtdeur(?:en)?)\b.{0,120}\b(kaartlezer|intercom|sluitsysteem|slot|melder|signaleringssysteem)\b",
+    )
+    return any(re.search(pattern, text, re.IGNORECASE | re.DOTALL) for pattern in patterns)
+
+
+def _looks_like_abstract_gate_subsystem_block(text: str) -> bool:
+    normalized = " ".join(text.split())
+    if not re.search(r"\b(speedgate|slagboom|handzender|afstandsbediening|in- en uitrijlussen|uitrijlus)\b", normalized, re.IGNORECASE):
+        return False
+    if _contains_concrete_door_target(normalized):
+        return False
+    if re.search(r"\b(kaartlezer|intercom|deurcontact|deurstandmelder|elektrisch slot|groene melder|kenteken|camera)\b", normalized, re.IGNORECASE):
+        return False
+    return True
 
 
 def _looks_like_heading_block(text: str) -> bool:
@@ -966,4 +1025,3 @@ def _find_via_llm(
         **result.__dict__,
         page_numbers=[int(p) for p in page_numbers],
     )
-
