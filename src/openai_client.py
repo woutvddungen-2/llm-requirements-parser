@@ -7,6 +7,18 @@ from openai import OpenAI, RateLimitError
 from src.llm_types import LLMResult
 
 
+def _is_unsupported_temperature_error(exc: Exception) -> bool:
+    """
+    Return True when OpenAI rejected the request because temperature is unsupported.
+
+    Some model families accept temperature, while others reject it with a 400.
+    We prefer to try with temperature first and only fall back when the API
+    explicitly says the parameter is unsupported.
+    """
+    text = f"{type(exc).__name__}: {exc}".lower()
+    return "temperature" in text and "unsupported parameter" in text
+
+
 def openai_generate_text(
     system_prompt: str,
     user_prompt: str,
@@ -28,25 +40,39 @@ def openai_generate_text(
 
     client = OpenAI(api_key=api_key)
 
+    base_kwargs = {
+        "model": model_name,
+        "max_output_tokens": max_tokens,
+        "text": {"format": {"type": "json_object"}},
+        "input": [
+            {
+                "role": "system",
+                "content": [{"type": "input_text", "text": system_prompt}],
+            },
+            {
+                "role": "user",
+                "content": [{"type": "input_text", "text": user_prompt}],
+            },
+        ],
+    }
+
     try:
         response = client.responses.create(
-            model=model_name,
-            max_output_tokens=max_tokens,
+            **base_kwargs,
             temperature=temperature,
-            text={"format": {"type": "json_object"}},
-            input=[
-                {
-                    "role": "system",
-                    "content": [{"type": "input_text", "text": system_prompt}],
-                },
-                {
-                    "role": "user",
-                    "content": [{"type": "input_text", "text": user_prompt}],
-                },
-            ],
         )
     except RateLimitError as exc:
         raise RuntimeError("OpenAI rate limit / quota error.") from exc
+    except Exception as exc:
+        if not _is_unsupported_temperature_error(exc):
+            raise
+
+        try:
+            response = client.responses.create(
+                **base_kwargs,
+            )
+        except RateLimitError as retry_exc:
+            raise RuntimeError("OpenAI rate limit / quota error.") from retry_exc
 
     usage = getattr(response, "usage", None)
 

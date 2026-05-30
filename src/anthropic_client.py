@@ -44,7 +44,13 @@ def anthropic_generate_text(
         kwargs = {
             "model": model_name,
             "max_tokens": max_tokens,
-            "system": system_prompt,
+            "system": [
+                {
+                    "type": "text",
+                    "text": system_prompt,
+                    "cache_control": {"type": "ephemeral"}
+                }
+            ],
             "messages": [
                 {
                     "role": "user",
