@@ -4,7 +4,7 @@
   "requirements": {
     "door_rules": [
       {
-        "areas": ["Entree"],
+        "areas": {"any_of": [["Entree"], ["Hal"]]},
         "door_id": "door_04",
         "reader_direction": "IN_ONLY",
         "reader_types": ["CARD"],
@@ -12,7 +12,7 @@
         "description": ""
       },
       {
-        "areas": ["Kantine"],
+        "areas": {"any_of": [["Kantine"], ["Hal"]]},
         "door_id": "door_05",
         "reader_direction": "IN_ONLY",
         "reader_types": ["CARD"],
@@ -20,7 +20,7 @@
         "description": ""
       },
       {
-        "areas": ["Vergaderruimte"],
+        "areas": {"any_of": [["Vergaderruimte"], ["Hal"]]},
         "door_id": "door_07",
         "reader_direction": "IN_ONLY",
         "reader_types": ["CARD"],
@@ -28,7 +28,7 @@
         "description": ""
       },
       {
-        "areas": ["Directiekantoor"],
+        "areas": {"any_of": [["Directiekantoor"], ["Hal"]]},
         "door_id": "door_08",
         "reader_direction": "IN_ONLY",
         "reader_types": ["CARD", "CODE"],

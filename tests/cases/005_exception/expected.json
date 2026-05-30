@@ -4,25 +4,25 @@
   "requirements": {
     "door_rules": [
       {
-        "areas": ["Entree"],
+        "areas": {"any_of": [["Entree"], ["Hal"]]},
         "door_id": "door_04",
         "lock_type": "ELECTRIC_STRIKE_PLATE",
         "description": ""
       },
       {
-        "areas": ["Kantine"],
+        "areas": {"any_of": [["Kantine"], ["Hal"]]},
         "door_id": "door_05",
         "lock_type": "ELECTRIC_STRIKE_PLATE",
         "description": ""
       },
       {
-        "areas": ["Kantoor"],
+        "areas": {"any_of": [["Kantoor"], ["Hal"]]},
         "door_id": "door_06",
         "lock_type": "ELECTRIC_STRIKE_PLATE",
         "description": ""
       },
       {
-        "areas": ["serverruimte"],
+        "areas": {"any_of": [["serverruimte"], ["Hal"]]},
         "door_id": "door_09",
         "lock_type": "MOTORIZED_LOCK",
         "description": ""

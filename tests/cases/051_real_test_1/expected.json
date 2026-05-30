@@ -38,7 +38,7 @@
     ],
     "controller_rules": [
       {
-        "areas": [],
+        "areas": {"any_of": [[], null]},
         "manages_door_areas": [
           "Entreehal",
           "Parkeergarage"

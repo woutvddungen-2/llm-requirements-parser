@@ -4,28 +4,28 @@
   "requirements": {
     "door_rules": [
       {
-        "areas": ["Entree"],
+        "areas": {"any_of": [["Entree"], ["Hal"]]},
         "door_id": "door_04",
         "reader_types": ["CARD"],
         "door_closer": "MECHANICAL",
         "description": ""
       },
       {
-        "areas": ["Kantine"],
+        "areas": {"any_of": [["Kantine"], ["Hal"]]},
         "door_id": "door_05",
         "reader_types": ["CARD"],
         "door_closer": "MECHANICAL",
         "description": ""
       },
       {
-        "areas": ["Kantoor"],
+        "areas": {"any_of": [["Kantoor"], ["Hal"]]},
         "door_id": "door_06",
         "reader_types": ["CARD"],
         "door_closer": "MECHANICAL",
         "description": ""
       },
       {
-        "areas": ["Serverruimte"],
+        "areas": {"any_of": [["Serverruimte"], ["Hal"]]},
         "door_id": "door_09",
         "reader_types": ["FACE_RECOGNITION"],
         "door_closer": "MECHANICAL",

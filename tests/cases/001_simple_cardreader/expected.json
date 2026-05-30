@@ -5,7 +5,7 @@
     "controller_rules": [],
     "door_rules": [
       {
-        "areas": ["serverruimte"],
+        "areas": {"any_of": [["serverruimte"], ["Hal"]]},
         "door_id": "door_12",
         "reader_types": ["CARD"],
         "description": ""
