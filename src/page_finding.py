@@ -1016,7 +1016,12 @@ def _find_via_llm(
         model=model,
         max_tokens=DEFAULT_PAGE_FINDER_MAX_TOKENS,
     )
-    parsed = json.loads(result.text)
+
+    try:
+        parsed = json.loads(result.text)
+    except json.JSONDecodeError as e:
+        raise ValueError(f"Failed to parse LLM response as JSON: {e}. Response: {result.text[:200]}") from e
+
     page_numbers = parsed.get("page_numbers", [])
     if not isinstance(page_numbers, list):
         raise ValueError("Expected 'page_numbers' to be a list.")

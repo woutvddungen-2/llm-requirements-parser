@@ -303,7 +303,7 @@ def _merge_duplicate_door_rules(rules: list[dict[str, Any]]) -> list[dict[str, A
 
         if _can_merge_rules(existing, rule):
             index[key] = _merge_rule_dicts(existing, rule)
-            merged[indexed_position(merged, existing)] = index[key]
+            merged[_indexed_position(merged, existing)] = index[key]
         else:
             merged.append(rule)
 
@@ -381,7 +381,7 @@ def _freeze_for_set(value: Any) -> Any:
     return value
 
 
-def indexed_position(items: list[dict[str, Any]], target: dict[str, Any]) -> int:
+def _indexed_position(items: list[dict[str, Any]], target: dict[str, Any]) -> int:
     """Return the first index of target by object identity."""
     for idx, item in enumerate(items):
         if item is target:

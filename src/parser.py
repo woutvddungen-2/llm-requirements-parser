@@ -31,14 +31,6 @@ def build_system_prompt(rag_context: str | None = None) -> str:
     return load_system_prompt(BASE_PROMPT_FILES + STATIC_EXAMPLE_FILES)
 
 
-def build_user_prompt(
-    requirement_text: str,
-    language: str = "Dutch"
-) -> str:
-    """Build the default user prompt for text-only extraction."""
-    return PromptBuilder(language=language).build(requirement_text)
-
-
 def extract_requirements_json(
     requirement_text: str,
     model: str,

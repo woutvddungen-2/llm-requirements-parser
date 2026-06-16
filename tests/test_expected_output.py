@@ -119,14 +119,50 @@ def test_extraction_matches_expected(
     total_started = perf_counter()
     llm_result = None
     expected_path = case_dir / "expected.json"
-    case_input = load_case_input(
-        case_dir,
-        page_finder_strategy=pdf_strategy,
-        page_finder_model=model if pdf_strategy == "llm" else None,
-    )
+    run_id = get_run_id()
+
+    try:
+        case_input = load_case_input(
+            case_dir,
+            page_finder_strategy=pdf_strategy,
+            page_finder_model=model if pdf_strategy == "llm" else None,
+        )
+    except Exception as ex:
+        total_duration_ms = int((perf_counter() - total_started) * 1000)
+        expected = load_json(expected_path)
+        entry = {
+            "timestamp": datetime.now(UTC).isoformat(),
+            "run_id": run_id,
+            "case": case_dir.name,
+            "model": model,
+            "use_few_shot": False,
+            "source_mode": "page_finder",
+            "passed": False,
+            "input": "",
+            "expected": expected,
+            "actual": None,
+            "raw_output": None,
+            "diff": None,
+            "pdf_strategy": pdf_strategy,
+            "page_selection_method": None,
+            "selected_pages": [],
+            "source_pdf_path": "",
+            "total_duration_ms": total_duration_ms,
+            "error": f"Page extraction error: {str(ex)}",
+        }
+        log_result(entry)
+
+        rag_str = " (with few-shot)" if False else ""
+        pytest.fail(
+            f"\nRUN_ID: {run_id}"
+            f"\nMODEL: {model}{rag_str}"
+            f"\nCASE: {case_dir.name}"
+            f"\nPAGE_EXTRACTION_ERROR: {ex}",
+            pytrace=False,
+        )
+
     requirement_text = case_input["requirement_text"]
     expected = load_json(expected_path)
-    run_id = get_run_id()
     
     # Build few-shot context if requested
     few_shot_context_str = None
@@ -189,6 +225,37 @@ def test_extraction_matches_expected(
             f"\nCASE: {case_dir.name}"
             f"\nRATE_LIMIT: retried {ex.attempts} times, moved to pending",
         )
+    except RuntimeError as ex:
+        if "billing error" in str(ex).lower() or "insufficient credits" in str(ex).lower():
+            total_duration_ms = int((perf_counter() - total_started) * 1000)
+            entry = {
+                "timestamp": datetime.now(UTC).isoformat(),
+                "run_id": run_id,
+                "case": case_dir.name,
+                "model": model,
+                "use_few_shot": use_few_shot,
+                "source_mode": case_input.get("input_source_mode"),
+                "pdf_strategy": pdf_strategy,
+                "reason": "billing_error",
+                "error": str(ex),
+                "input": requirement_text,
+                "expected": expected,
+                "selected_pages": case_input.get("selected_pages"),
+                "page_selection_method": case_input.get("page_selection_method"),
+                "page_finder_strategy": case_input.get("page_finder_strategy"),
+                "source_pdf_path": case_input.get("source_pdf_path"),
+                "total_duration_ms": total_duration_ms,
+            }
+            log_pending(entry)
+
+            rag_str = " (with few-shot)" if use_few_shot else ""
+            pytest.skip(
+                f"\nRUN_ID: {run_id}"
+                f"\nMODEL: {model}{rag_str}"
+                f"\nCASE: {case_dir.name}"
+                f"\nBILLING ERROR: insufficient credits - skipped",
+            )
+        raise
     except Exception as ex:
         total_duration_ms = int((perf_counter() - total_started) * 1000)
         entry = {

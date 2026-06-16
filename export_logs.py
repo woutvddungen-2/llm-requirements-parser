@@ -59,7 +59,12 @@ def select_logs_gui() -> list[Path]:
     selected = filedialog.askopenfilenames(
         title="Select test result logs to export",
         initialdir=LOG_DIR,
-        filetypes=[("JSONL logs", "*_results.jsonl"), ("All files", "*")],
+        filetypes=[
+            ("Test logs", "*.jsonl"),
+            ("Results logs", "*_results.jsonl"),
+            ("Failures logs", "*_failures.jsonl"),
+            ("All files", "*")
+        ],
     )
 
     root.destroy()

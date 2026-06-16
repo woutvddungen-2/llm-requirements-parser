@@ -226,13 +226,6 @@ def create_embeddings(knowledge_base: dict) -> dict:
     if not model:
         return {}
 
-    cached = _load_embeddings_cache()
-    if cached and cached.get("fingerprint") == fingerprint:
-        return {
-            case_name: np.array(vector, dtype=np.float32)
-            for case_name, vector in cached["embeddings"].items()
-        }
-
     embeddings = {}
     for case_name, case_data in knowledge_base.items():
         embedding = model.encode(case_data["spec"])
@@ -338,21 +331,18 @@ def build_context(
         case_data = knowledge_base.get(case_name)
         if not case_data:
             continue
-        
+
         context += f"\nEXAMPLE {i} ({similarity:.0%} similar):\n"
         context += f"Input specification:\n{case_data['spec']}\n\n"
-        if case_data.get("available_spaces"):
-            context += "Available spaces:\n"
-            context += "\n".join(f"- {space}" for space in case_data["available_spaces"]) + "\n\n"
-        if case_data.get("available_doors"):
-            context += "Available doors:\n"
-            for door in case_data["available_doors"]:
-                door_id = door.get("door_id") or door.get("name") or "UNKNOWN_DOOR"
-                space_a = door.get("space_a") or "UNKNOWN_SPACE"
-                space_b = door.get("space_b") or "UNKNOWN_SPACE"
-                is_external = bool(door.get("is_external", False))
-                context += f"- {door_id}: {space_a} <-> {space_b}, external={'true' if is_external else 'false'}\n"
-            context += "\n"
+
+        spaces_block = _format_available_spaces(case_data.get("available_spaces"))
+        if spaces_block:
+            context += spaces_block + "\n\n"
+
+        doors_block = _format_available_doors(case_data.get("available_doors"))
+        if doors_block:
+            context += doors_block + "\n"
+
         context += f"Extracted JSON:\n{json.dumps(case_data['expected'], indent=2)}\n"
         context += "-" * 70 + "\n"
     

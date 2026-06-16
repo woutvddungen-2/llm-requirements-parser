@@ -11,43 +11,43 @@
   ],
   "available_doors": [
     {
-      "door_id": "main_entry",
+      "door_id": "door_1",
       "space_a": "OUTSIDE",
       "space_b": "Entree",
       "is_external": true
     },
     {
-      "door_id": "lobby_to_common",
+      "door_id": "door_2",
       "space_a": "Entree",
       "space_b": "Algemeen",
       "is_external": false
     },
     {
-      "door_id": "parking_entry",
+      "door_id": "door_10",
       "space_a": "Algemeen",
       "space_b": "Parkeergarage",
       "is_external": false
     },
     {
-      "door_id": "fietsenstalling_entry",
+      "door_id": "door_12",
       "space_a": "Algemeen",
       "space_b": "Fietsenstalling",
       "is_external": false
     },
     {
-      "door_id": "technical_room_entry",
+      "door_id": "door_14",
       "space_a": "Algemeen",
       "space_b": "Technische Ruimte",
       "is_external": false
     },
     {
-      "door_id": "office_entry",
+      "door_id": "door_15",
       "space_a": "Algemeen",
       "space_b": "Kantoren",
       "is_external": false
     },
     {
-      "door_id": "parking_emergency_exit",
+      "door_id": "door_16",
       "space_a": "Parkeergarage",
       "space_b": "OUTSIDE",
       "is_external": true

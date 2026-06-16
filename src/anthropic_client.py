@@ -1,7 +1,7 @@
 import os
 from datetime import UTC, datetime
 
-from anthropic import Anthropic, RateLimitError
+from anthropic import Anthropic, RateLimitError, APIStatusError
 from dotenv import load_dotenv
 
 from src.llm_types import LLMResult
@@ -64,11 +64,17 @@ def anthropic_generate_text(
         message = client.messages.create(**kwargs)
     except RateLimitError as exc:
         raise RuntimeError("Anthropic rate limit / quota error.") from exc
+    except APIStatusError as exc:
+        if exc.status_code == 400 and "credit balance is too low" in str(exc):
+            raise RuntimeError("Anthropic billing error: insufficient credits.") from exc
+        raise
 
     completed = datetime.now(UTC)
     duration_ms = int((completed - started).total_seconds() * 1000)
-
+    
     usage = getattr(message, "usage", None)
+
+    print(f"DEBUG usage: input={getattr(usage,'input_tokens',None)}, cache_read={getattr(usage,'cache_read_input_tokens',None)}, cache_create={getattr(usage,'cache_creation_input_tokens',None)}")
 
     return LLMResult(
         text=_extract_text(message),
@@ -77,6 +83,8 @@ def anthropic_generate_text(
         started_at=started.isoformat(),
         completed_at=completed.isoformat(),
         duration_ms=duration_ms,
-        input_tokens=getattr(usage, "input_tokens", None) if usage else None,
-        output_tokens=getattr(usage, "output_tokens", None) if usage else None,
+        input_tokens=getattr(usage, "input_tokens", 0) + 
+                getattr(usage, "cache_read_input_tokens", 0) + 
+                getattr(usage, "cache_creation_input_tokens", 0) if usage else None,
+        output_tokens=getattr(usage, "output_tokens", 0) if usage else None,
     )

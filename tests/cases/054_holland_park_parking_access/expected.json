@@ -5,7 +5,7 @@
     "door_rules": [
       {
         "areas": ["Fietsenstalling"],
-        "door_id": "fietsenstalling_entry",
+        "door_id": "door_12",
         "lock_type": {"any_of": ["OTHER", null]},
         "reader_types": {"any_of": [["CARD"], ["CARD", "WIRELESS_KEYFOB"]]},
         "exit_device": "ELBOW_ACTUATED",
@@ -14,8 +14,8 @@
       {
         "areas": ["Parkeergarage"],
         "connects_to_areas": ["Algemeen"],
-        "door_id": "parking_entry",
-        "reader_types": {"any_of": [["CARD"], ["CARD", "WIRELESS_KEYFOB"]]},
+        "door_id": "door_10",
+        "reader_types": ["CARD", "WIRELESS_KEYFOB"],
         "lock_type": "SOLENOID_LOCK",
         "emergency_button": "STANDALONE",
         "description": "Parkeergarage toegang met elektronisch slot, kaartlezer voor ingang, en groene noodknop voor evacuatie"
